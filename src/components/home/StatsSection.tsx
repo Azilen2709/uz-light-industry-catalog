@@ -1,9 +1,15 @@
+"use client";
+import { useT } from "@/contexts/LanguageContext";
+
 export default function StatsSection() {
+    const { t } = useT();
+    const s = t.stats;
+
     const stats = [
-        { value: "500+", label: "Проверенных фабрик", icon: "🏭" },
-        { value: "15,000+", label: "Товаров в каталоге", icon: "👕" },
-        { value: "2 языка", label: "Русский и Английский", icon: "🌍" },
-        { value: "3 флоу", label: "In-Stock, White Label, RFQ", icon: "⚡" },
+        { value: "500+", label: s.factories, icon: "🏭" },
+        { value: "15,000+", label: s.products, icon: "👕" },
+        { value: "2", label: s.languages, icon: "🌍" },
+        { value: "3", label: s.flows, icon: "⚡" },
     ];
 
     return (
@@ -18,7 +24,7 @@ export default function StatsSection() {
                     gap: 0,
                 }}>
                     {stats.map((stat, i) => (
-                        <div key={stat.label} style={{
+                        <div key={i} style={{
                             padding: "28px 24px",
                             borderRight: i < stats.length - 1 ? "1px solid var(--color-border)" : "none",
                             display: "flex",

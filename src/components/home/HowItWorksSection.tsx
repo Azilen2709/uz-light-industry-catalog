@@ -1,167 +1,105 @@
+"use client";
 import Link from "next/link";
-
-const steps = [
-    {
-        flow: "Флоу 1",
-        icon: "📦",
-        color: "#16a34a",
-        bgColor: "#f0fdf4",
-        borderColor: "#bbf7d0",
-        title: "Готовый товар (In-Stock)",
-        description: "Фабрика шьёт запас. Вы выбираете товар в каталоге и покупаете коробами (размерными рядами). Отгрузка за 2–5 дней.",
-        steps: ["Найдите товар в каталоге", "Выберите цвет и количество коробов", "Отправьте запрос — фабрика пришлёт инвойс", "Отгрузка"],
-        cta: "Смотреть In-Stock товары",
-        href: "/products?type=instock",
-    },
-    {
-        flow: "Флоу 2",
-        icon: "🏷️",
-        color: "#0e7bc4",
-        bgColor: "#f0f8ff",
-        borderColor: "#bae6fd",
-        title: "Свой бренд (White Label)",
-        description: "Вам нравится модель фабрики, но нужна ваша бирка или другой цвет. Фабрика отошьёт по вашим параметрам.",
-        steps: ["Выберите базовую модель из каталога", "Укажите цвет (Pantone), тираж, дизайн бирки", "Получите КП от фабрики в чате", "Производство 15–25 дней + отгрузка"],
-        cta: "Найти фабрику для White Label",
-        href: "/products?type=whitelabel",
-    },
-    {
-        flow: "Флоу 3",
-        icon: "📐",
-        color: "#7c3aed",
-        bgColor: "#faf5ff",
-        borderColor: "#e9d5ff",
-        title: "По вашим лекалам (RFQ)",
-        description: "У вас есть собственный дизайн и Tech Pack. Разместите заявку — фабрики пришлют свои предложения с ценами.",
-        steps: ["Создайте заявку (RFQ) и загрузите Tech Pack", "Фабрики изучают ТЗ и присылают КП", "Утвердите образец", "Производство по вашим лекалам 30–45 дней"],
-        cta: "Разместить заявку (RFQ)",
-        href: "/rfq/new",
-    },
-];
+import { useT } from "@/contexts/LanguageContext";
 
 export default function HowItWorksSection() {
+    const { t, lang } = useT();
+    const hiw = t.howItWorks;
+
+    const steps = [
+        {
+            flow: lang === "ru" ? "Флоу 1" : "Flow 1",
+            icon: "📦",
+            color: "#16a34a", bgColor: "#f0fdf4", borderColor: "#bbf7d0",
+            title: lang === "ru" ? "Готовый товар (In-Stock)" : "Ready Stock (In-Stock)",
+            description: lang === "ru"
+                ? "Фабрика шьёт запас. Вы выбираете товар в каталоге и покупаете коробами. Отгрузка за 2–5 дней."
+                : "The factory keeps stock. You choose from the catalog and buy by the box. Ships in 2–5 days.",
+            stepsList: lang === "ru"
+                ? ["Найдите товар в каталоге", "Выберите цвет и количество коробов", "Отправьте запрос — фабрика пришлёт инвойс", "Отгрузка"]
+                : ["Find the product in the catalog", "Choose color and box quantity", "Send request — factory sends invoice", "Shipment"],
+            cta: lang === "ru" ? "Смотреть In-Stock товары" : "Browse In-Stock Products",
+            href: "/products?type=instock",
+        },
+        {
+            flow: lang === "ru" ? "Флоу 2" : "Flow 2",
+            icon: "🏷️",
+            color: "#0e7bc4", bgColor: "#f0f8ff", borderColor: "#bae6fd",
+            title: lang === "ru" ? "Свой бренд (White Label)" : "Your Brand (White Label)",
+            description: lang === "ru"
+                ? "Нравится модель фабрики, но нужна ваша бирка или другой цвет. Фабрика отошьёт под ваши параметры."
+                : "You like a factory model but need your own label or different color. The factory will produce to your specs.",
+            stepsList: lang === "ru"
+                ? ["Выберите базовую модель", "Укажите цвет (Pantone), тираж, бирку", "Получите КП от фабрики", "Производство 15–25 дней + отгрузка"]
+                : ["Choose a base model", "Specify Pantone, quantity, label", "Receive a quote from the factory", "Production 15–25 days + shipment"],
+            cta: lang === "ru" ? "Найти фабрику для White Label" : "Find White Label Factory",
+            href: "/products?type=whitelabel",
+        },
+        {
+            flow: lang === "ru" ? "Флоу 3" : "Flow 3",
+            icon: "📐",
+            color: "#7c3aed", bgColor: "#faf5ff", borderColor: "#e9d5ff",
+            title: lang === "ru" ? "По вашим лекалам (RFQ)" : "Custom Production (RFQ)",
+            description: lang === "ru"
+                ? "У вас есть собственный дизайн и Tech Pack. Разместите заявку — фабрики пришлют предложения."
+                : "You have your own design and tech pack. Post a request — factories will send their proposals.",
+            stepsList: lang === "ru"
+                ? ["Создайте заявку (RFQ) и загрузите Tech Pack", "Фабрики присылают КП", "Утвердите образец", "Производство по лекалам 30–45 дней"]
+                : ["Create RFQ and upload Tech Pack", "Factories submit quotes", "Approve a sample", "Custom production 30–45 days"],
+            cta: lang === "ru" ? "Разместить заявку (RFQ)" : "Submit RFQ Request",
+            href: "/rfq/new",
+        },
+    ];
+
     return (
-        <section className="section" style={{ background: "white" }}>
+        <section className="section" style={{ background: "var(--color-bg)" }}>
             <div className="container">
-                <div style={{ textAlign: "center", marginBottom: 48 }}>
-                    <p style={{
-                        fontSize: 12,
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.08em",
-                        color: "var(--color-accent)",
-                        marginBottom: 10,
-                    }}>3 способа работы</p>
-                    <h2 style={{ fontSize: 36, marginBottom: 14 }}>Как работает платформа?</h2>
-                    <p style={{
-                        fontSize: 16,
-                        color: "var(--color-text-secondary)",
-                        maxWidth: 560,
-                        margin: "0 auto",
-                    }}>
-                        Выберите подходящий сценарий: покупка готового товара, заказ под свой бренд, или производство по вашим лекалам
+                <div style={{ textAlign: "center", maxWidth: 640, margin: "0 auto 48px" }}>
+                    <p style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-accent)", marginBottom: 8 }}>
+                        {hiw.eyebrow}
                     </p>
+                    <h2 style={{ fontSize: 36, marginBottom: 16 }}>{hiw.title}</h2>
+                    <p style={{ fontSize: 16, color: "var(--color-text-secondary)", lineHeight: 1.7 }}>{hiw.subtitle}</p>
                 </div>
 
-                <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(3, 1fr)",
-                    gap: 24,
-                }}>
-                    {steps.map(step => (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
+                    {steps.map((step) => (
                         <div key={step.flow} style={{
-                            background: step.bgColor,
-                            border: `1.5px solid ${step.borderColor}`,
-                            borderRadius: 20,
-                            padding: 28,
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 16,
+                            background: step.bgColor, border: `1px solid ${step.borderColor}`,
+                            borderRadius: 20, padding: 28, display: "flex", flexDirection: "column",
                         }}>
-                            {/* Header */}
-                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
                                 <div style={{
-                                    width: 48, height: 48,
-                                    background: step.color,
-                                    borderRadius: 12,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    fontSize: 22,
-                                    flexShrink: 0,
+                                    width: 44, height: 44, borderRadius: 12,
+                                    background: step.color, display: "flex", alignItems: "center",
+                                    justifyContent: "center", fontSize: 22,
                                 }}>{step.icon}</div>
-                                <div>
-                                    <span style={{
-                                        fontSize: 11,
-                                        fontWeight: 700,
-                                        color: step.color,
-                                        textTransform: "uppercase",
-                                        letterSpacing: "0.06em",
-                                    }}>{step.flow}</span>
-                                    <h3 style={{
-                                        fontSize: 17,
-                                        fontWeight: 700,
-                                        color: "var(--color-text)",
-                                        margin: 0,
-                                    }}>{step.title}</h3>
-                                </div>
+                                <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: step.color }}>
+                                    {step.flow}
+                                </span>
                             </div>
 
-                            <p style={{
-                                fontSize: 14,
-                                color: "var(--color-text-secondary)",
-                                lineHeight: 1.6,
-                                margin: 0,
-                            }}>{step.description}</p>
+                            <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 10, color: "var(--color-text)" }}>{step.title}</h3>
+                            <p style={{ fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.65, marginBottom: 20, flex: 1 }}>{step.description}</p>
 
-                            {/* Steps */}
-                            <ol style={{
-                                margin: 0,
-                                padding: 0,
-                                listStyle: "none",
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 8,
-                            }}>
-                                {step.steps.map((s, i) => (
-                                    <li key={i} style={{
-                                        display: "flex",
-                                        alignItems: "flex-start",
-                                        gap: 10,
-                                        fontSize: 13,
-                                        color: "var(--color-text-secondary)",
-                                    }}>
-                                        <span style={{
-                                            minWidth: 22,
-                                            height: 22,
-                                            borderRadius: "50%",
-                                            background: step.color,
-                                            color: "white",
-                                            fontSize: 11,
-                                            fontWeight: 700,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            flexShrink: 0,
-                                            marginTop: 1,
-                                        }}>{i + 1}</span>
-                                        {s}
-                                    </li>
+                            <div style={{ marginBottom: 20 }}>
+                                {step.stepsList.map((s, i) => (
+                                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
+                                        <div style={{
+                                            width: 22, height: 22, borderRadius: "50%", background: step.color,
+                                            color: "white", fontSize: 11, fontWeight: 700, flexShrink: 0,
+                                            display: "flex", alignItems: "center", justifyContent: "center",
+                                        }}>{i + 1}</div>
+                                        <span style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.5 }}>{s}</span>
+                                    </div>
                                 ))}
-                            </ol>
+                            </div>
 
                             <Link href={step.href} style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 6,
-                                color: step.color,
-                                fontWeight: 700,
-                                fontSize: 13,
-                                textDecoration: "none",
-                                marginTop: 4,
-                            }}>
-                                {step.cta} →
-                            </Link>
+                                display: "inline-block", padding: "10px 18px", borderRadius: 10,
+                                background: step.color, color: "white", fontWeight: 700, fontSize: 13,
+                                textDecoration: "none", textAlign: "center",
+                            }}>{step.cta} →</Link>
                         </div>
                     ))}
                 </div>

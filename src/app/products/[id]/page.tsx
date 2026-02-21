@@ -1,6 +1,7 @@
 "use client";
 import { useT } from "@/contexts/LanguageContext";
 import { PRODUCTS, CATEGORIES } from "@/lib/data";
+import { SIZE_TABLES, INDUSTRY_TAXONOMY } from "@/lib/taxonomy";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -9,6 +10,19 @@ const typeColors = {
     whitelabel: { bg: "#dbeafe", text: "#1d4ed8" },
     rfq: { bg: "#ede9fe", text: "#6d28d9" },
 };
+
+// Map categorySlug → sizeTable type
+function getSizeTableType(categorySlug: string): keyof typeof SIZE_TABLES {
+    for (const ind of INDUSTRY_TAXONOMY) {
+        const sub = ind.subcategories.find(s => s.slug === categorySlug);
+        if (sub) return sub.sizeTable;
+    }
+    // fallback by slug keywords
+    if (categorySlug === "footwear") return "footwear";
+    if (categorySlug === "carpets") return "carpet";
+    if (["outerwear", "knitwear", "dresses", "workwear"].includes(categorySlug)) return "clothing";
+    return "none";
+}
 
 // Mock extra details per product
 const productDetails: Record<number, {
@@ -86,6 +100,10 @@ export default function ProductPage() {
 
     const related = PRODUCTS.filter(p => p.categorySlug === product.categorySlug && p.id !== product.id).slice(0, 3);
 
+    // Size table
+    const sizeTableType = getSizeTableType(product.categorySlug);
+    const sizeTable = SIZE_TABLES[sizeTableType];
+
     return (
         <div style={{ background: "var(--color-bg)", minHeight: "100vh" }}>
             {/* Breadcrumb */}
@@ -114,13 +132,10 @@ export default function ProductPage() {
                         {/* Main image placeholder */}
                         <div style={{
                             background: "linear-gradient(135deg, #f0f6ff, #dbeeff)",
-                            borderRadius: 20,
-                            height: 400,
+                            borderRadius: 20, height: 400,
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 100,
-                            marginBottom: 20,
-                            border: "1px solid var(--color-border)",
-                            position: "relative",
+                            fontSize: 100, marginBottom: 20,
+                            border: "1px solid var(--color-border)", position: "relative",
                         }}>
                             🧵
                             {product.verified && (
@@ -163,7 +178,6 @@ export default function ProductPage() {
                                         [pt.moq, product.moq],
                                         [pt.leadTime, product.leadTime],
                                         [pt.shipFrom, `${product.region}, ${t.common.country}`],
-                                        [pt.sizes, details.sizes.join(", ")],
                                         [lang === "ru" ? "Регион" : "Region", product.region],
                                     ].map(([label, value]) => (
                                         <tr key={label} style={{ borderBottom: "1px solid var(--color-border)" }}>
@@ -176,7 +190,7 @@ export default function ProductPage() {
                         </div>
 
                         {/* Color swatches */}
-                        <div style={{ background: "white", border: "1px solid var(--color-border)", borderRadius: 16, padding: 24 }}>
+                        <div style={{ background: "white", border: "1px solid var(--color-border)", borderRadius: 16, padding: 24, marginBottom: 24 }}>
                             <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 14 }}>{pt.colors}</h3>
                             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                                 {product.colors.map((c, i) => (
@@ -189,8 +203,47 @@ export default function ProductPage() {
                                 ))}
                             </div>
                         </div>
-                    </div>
 
+                        {/* Size Table — auto-detected by category */}
+                        {sizeTableType !== "none" && sizeTable.columns.length > 0 && (
+                            <div style={{ background: "white", border: "1px solid var(--color-border)", borderRadius: 16, padding: 24, marginBottom: 24 }}>
+                                <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>
+                                    {sizeTable.label[lang]}
+                                </h3>
+                                <div style={{ overflowX: "auto" }}>
+                                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                                        <thead>
+                                            <tr style={{ background: "var(--color-primary)", color: "white" }}>
+                                                {sizeTable.columns.map((col: string) => (
+                                                    <th key={col} style={{ padding: "8px 12px", textAlign: "center", fontWeight: 700, whiteSpace: "nowrap", borderRight: "1px solid rgba(255,255,255,0.15)" }}>
+                                                        {col}
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {sizeTable.rows.map((row: readonly string[], ri: number) => (
+                                                <tr key={ri} style={{ background: ri % 2 === 0 ? "white" : "var(--color-bg)" }}>
+                                                    {row.map((cell: string, ci: number) => (
+                                                        <td key={ci} style={{
+                                                            padding: "7px 12px", textAlign: "center",
+                                                            borderBottom: "1px solid var(--color-border)",
+                                                            borderRight: "1px solid var(--color-border)",
+                                                            fontWeight: ci === 0 ? 700 : 400,
+                                                            color: ci === 0 ? "var(--color-primary)" : "var(--color-text-secondary)",
+                                                        }}>{cell}</td>
+                                                    ))}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p style={{ fontSize: 11, color: "var(--color-muted)", marginTop: 10 }}>
+                                    {lang === "ru" ? "* Размеры указаны для ориентира. Уточняйте у фабрики по конкретному артикулу." : "* Sizes are for reference only. Confirm exact measurements with the factory for the specific SKU."}
+                                </p>
+                            </div>
+                        )}
+                    </div>
                     {/* Right: Buy panel */}
                     <div style={{ position: "sticky", top: 84 }}>
                         {/* Badges */}
