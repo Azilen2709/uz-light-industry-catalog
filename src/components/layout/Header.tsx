@@ -1,210 +1,148 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
-import { NeonSearchIcon } from "@/components/icons/NeonIcons";
-
-// Neon logo SVG — thread/fabric icon
-function NeonLogoIcon({ size = 36 }: { size?: number }) {
-    return (
-        <svg width={size} height={size} viewBox="0 0 36 36" fill="none" style={{
-            filter: `
-        drop-shadow(0 0 4px rgba(94,184,255,0.9))
-        drop-shadow(0 0 12px rgba(94,184,255,0.6))
-        drop-shadow(0 0 24px rgba(94,184,255,0.3))
-      `,
-        }}>
-            {/* Textile/bolt of fabric */}
-            <path d="M6 10 C6 10 16 8 24 12 C32 16 30 26 30 26" stroke="#5eb8ff" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-            <path d="M6 18 C6 18 14 16 22 20 C30 24 30 26 30 26" stroke="#5eb8ff" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7" />
-            <circle cx="6" cy="10" r="2" stroke="#5eb8ff" strokeWidth="2" fill="none" />
-            <circle cx="30" cy="26" r="2" stroke="#00e5ff" strokeWidth="2" fill="none" style={{
-                filter: "drop-shadow(0 0 4px rgba(0,229,255,0.9))",
-            }} />
-        </svg>
-    );
-}
+import { useT } from "@/contexts/LanguageContext";
 
 export default function Header() {
-    const [lang, setLang] = useState<"RU" | "EN">("RU");
+    const { t, lang, setLang } = useT();
+    const n = t.nav;
 
     return (
-        <>
+        <header style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 100,
+            background: "var(--color-primary)",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
+        }}>
             <style>{`
-        .nav-link {
-          color: rgba(255,255,255,0.75);
-          font-size: 13px;
-          font-weight: 600;
-          padding: 6px 12px;
-          border-radius: 8px;
-          text-decoration: none;
-          transition: all 0.2s;
-          letter-spacing: 0.02em;
-        }
-        .nav-link:hover {
-          background: rgba(94,184,255,0.12);
-          color: #5eb8ff;
-          text-shadow: 0 0 8px rgba(94,184,255,0.6);
-        }
-        .header-login {
+        .header-nav-link {
           color: rgba(255,255,255,0.8);
-          font-size: 13px;
           font-weight: 600;
+          font-size: 14px;
           text-decoration: none;
-          padding: 7px 14px;
-          border-radius: 8px;
-          border: 1px solid rgba(94,184,255,0.35);
-          transition: all 0.2s;
+          padding: 6px 10px;
+          border-radius: 6px;
+          transition: all 0.15s;
+          white-space: nowrap;
         }
-        .header-login:hover {
-          border-color: rgba(94,184,255,0.7);
-          color: #5eb8ff;
-          box-shadow: 0 0 12px rgba(94,184,255,0.2);
+        .header-nav-link:hover { color: white; background: rgba(255,255,255,0.08); }
+        .lang-btn {
+          padding: 4px 10px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          border: 1px solid rgba(255,255,255,0.25);
+          transition: all 0.15s;
+          letter-spacing: 0.04em;
         }
-        .header-search-btn:hover {
-          background: #0b6aa8 !important;
-          box-shadow: 0 0 16px rgba(14,123,196,0.5);
-        }
-        .brand-name {
-          font-weight: 900;
-          font-size: 13px;
+        .lang-btn.active {
+          background: rgba(255,255,255,0.2);
           color: white;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          line-height: 1.1;
+          border-color: rgba(255,255,255,0.5);
         }
-        .brand-sub {
-          font-size: 9px;
-          color: rgba(94,184,255,0.8);
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          font-weight: 600;
-          text-shadow: 0 0 6px rgba(94,184,255,0.5);
+        .lang-btn.inactive {
+          background: transparent;
+          color: rgba(255,255,255,0.55);
+        }
+        .lang-btn.inactive:hover {
+          background: rgba(255,255,255,0.1);
+          color: rgba(255,255,255,0.85);
         }
       `}</style>
-            <header style={{
-                background: "linear-gradient(180deg, #0a1f35 0%, var(--color-primary) 100%)",
-                boxShadow: "0 2px 20px rgba(0,0,0,0.3), 0 1px 0 rgba(94,184,255,0.1)",
-                position: "sticky",
-                top: 0,
-                zIndex: 100,
+
+            <div className="container" style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 20,
+                height: 64,
             }}>
-                <div className="container" style={{
-                    display: "flex",
-                    alignItems: "center",
-                    height: 68,
-                    gap: 20,
-                }}>
-                    {/* Logo + Brand Name */}
-                    <Link href="/" style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        textDecoration: "none",
-                        flexShrink: 0,
-                    }}>
-                        <NeonLogoIcon size={36} />
-                        <div>
-                            <div className="brand-name">UZ Light Industry</div>
-                            <div className="brand-sub">Catalog B2B</div>
-                        </div>
-                    </Link>
-
-                    {/* Search Bar */}
+                {/* Logo */}
+                <Link href="/" style={{ textDecoration: "none", flexShrink: 0, display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{
-                        flex: 1,
-                        maxWidth: 520,
-                        display: "flex",
-                        alignItems: "center",
-                        background: "rgba(255,255,255,0.06)",
-                        border: "1px solid rgba(94,184,255,0.2)",
-                        borderRadius: 10,
-                        overflow: "hidden",
-                        transition: "border-color 0.2s",
-                    }}>
-                        <span style={{ padding: "0 10px", display: "flex", alignItems: "center" }}>
-                            <NeonSearchIcon size={16} color="blue" />
-                        </span>
-                        <input
-                            type="text"
-                            placeholder={lang === "RU" ? "Поиск товаров, фабрик, категорий..." : "Search products, factories, categories..."}
-                            style={{
-                                flex: 1,
-                                background: "transparent",
-                                border: "none",
-                                outline: "none",
-                                color: "white",
-                                fontSize: 13,
-                                padding: "10px 0",
-                            }}
-                        />
-                        <button className="header-search-btn" style={{
-                            background: "var(--color-accent)",
-                            border: "none",
-                            color: "white",
-                            padding: "10px 16px",
-                            fontSize: 12,
-                            fontWeight: 700,
-                            cursor: "pointer",
-                            whiteSpace: "nowrap",
-                            transition: "all 0.2s",
-                            letterSpacing: "0.04em",
-                        }}>
-                            {lang === "RU" ? "НАЙТИ" : "SEARCH"}
-                        </button>
-                    </div>
-
-                    {/* Navigation */}
-                    <nav style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
-                        {[
-                            { label: lang === "RU" ? "Каталог" : "Catalog", href: "/products" },
-                            { label: lang === "RU" ? "Фабрики" : "Factories", href: "/companies" },
-                            { label: "RFQ", href: "/rfq" },
-                        ].map(item => (
-                            <Link key={item.href} href={item.href} className="nav-link">
-                                {item.label}
-                            </Link>
-                        ))}
-                    </nav>
-
-                    {/* Right controls */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto", flexShrink: 0 }}>
-                        {/* Lang switcher */}
-                        <div style={{
-                            display: "flex",
-                            background: "rgba(0,0,0,0.2)",
-                            borderRadius: 8,
-                            overflow: "hidden",
-                            border: "1px solid rgba(94,184,255,0.2)",
-                        }}>
-                            {(["RU", "EN"] as const).map(l => (
-                                <button
-                                    key={l}
-                                    onClick={() => setLang(l)}
-                                    style={{
-                                        padding: "5px 10px",
-                                        fontSize: 11,
-                                        fontWeight: 800,
-                                        border: "none",
-                                        cursor: "pointer",
-                                        background: lang === l ? "var(--color-accent)" : "transparent",
-                                        color: lang === l ? "white" : "rgba(255,255,255,0.5)",
-                                        transition: "all 0.15s",
-                                        letterSpacing: "0.04em",
-                                        boxShadow: lang === l ? "0 0 10px rgba(14,123,196,0.5)" : "none",
-                                    }}
-                                >{l}</button>
-                            ))}
+                        width: 34, height: 34,
+                        background: "linear-gradient(135deg, #0e7bc4, #5eb8ff)",
+                        borderRadius: 8,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 17, flexShrink: 0,
+                    }}>🧵</div>
+                    <div>
+                        <div style={{ fontWeight: 900, fontSize: 12, color: "white", letterSpacing: "0.07em", textTransform: "uppercase", lineHeight: 1.1 }}>
+                            UZ Light Industry
                         </div>
-
-                        <Link href="/auth/login" className="header-login">
-                            {lang === "RU" ? "Войти" : "Login"}
-                        </Link>
-                        <Link href="/auth/register" className="btn btn-primary" style={{ fontSize: 12, padding: "7px 14px", letterSpacing: "0.04em" }}>
-                            {lang === "RU" ? "Регистрация" : "Register"}
-                        </Link>
+                        <div style={{ fontSize: 8.5, color: "rgba(94,184,255,0.85)", letterSpacing: "0.13em", textTransform: "uppercase", fontWeight: 600 }}>
+                            Catalog B2B
+                        </div>
                     </div>
+                </Link>
+
+                {/* Search */}
+                <div style={{ flex: 1, maxWidth: 460, position: "relative" }}>
+                    <input
+                        type="text"
+                        placeholder={n.searchPlaceholder}
+                        id="header-search"
+                        style={{
+                            width: "100%",
+                            background: "rgba(255,255,255,0.1)",
+                            border: "1px solid rgba(255,255,255,0.15)",
+                            borderRadius: 10,
+                            padding: "8px 14px 8px 36px",
+                            fontSize: 14,
+                            color: "white",
+                            outline: "none",
+                        }}
+                    />
+                    <span style={{
+                        position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
+                        fontSize: 15, opacity: 0.6, pointerEvents: "none",
+                    }}>🔍</span>
                 </div>
-            </header>
-        </>
+
+                {/* Nav */}
+                <nav style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                    <Link href="/products" className="header-nav-link">{n.catalog}</Link>
+                    <Link href="/companies" className="header-nav-link">{n.factories}</Link>
+                    <Link href="/rfq" className="header-nav-link">{n.rfq}</Link>
+                </nav>
+
+                {/* Language Switcher */}
+                <div style={{ display: "flex", gap: 4, alignItems: "center", flexShrink: 0 }}>
+                    <button
+                        onClick={() => setLang("ru")}
+                        className={`lang-btn ${lang === "ru" ? "active" : "inactive"}`}
+                    >РУС</button>
+                    <button
+                        onClick={() => setLang("en")}
+                        className={`lang-btn ${lang === "en" ? "active" : "inactive"}`}
+                    >ENG</button>
+                </div>
+
+                {/* Auth */}
+                <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                    <Link href="/auth/login" style={{
+                        color: "rgba(255,255,255,0.85)",
+                        fontWeight: 600,
+                        fontSize: 14,
+                        textDecoration: "none",
+                        padding: "7px 14px",
+                        borderRadius: 8,
+                        border: "1px solid rgba(255,255,255,0.2)",
+                        transition: "all 0.15s",
+                    }}>{n.login}</Link>
+
+                    <Link href="/auth/register" style={{
+                        background: "var(--color-accent)",
+                        color: "white",
+                        fontWeight: 700,
+                        fontSize: 14,
+                        textDecoration: "none",
+                        padding: "7px 16px",
+                        borderRadius: 8,
+                        transition: "background 0.15s",
+                    }}>{n.register}</Link>
+                </div>
+            </div>
+        </header>
     );
 }
