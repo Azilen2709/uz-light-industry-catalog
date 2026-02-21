@@ -1,0 +1,38 @@
+export const footerTranslations = {
+    ru: {
+        ctaTitle: "🏭 Вы производитель?",
+        ctaDesc: "Создайте мини-сайт фабрики бесплатно и получайте B2B-заказы из СНГ и Европы",
+        ctaBtn: "Добавить фабрику →",
+        description: "Единая B2B-платформа для лёгкой промышленности Узбекистана. Производители и покупатели со всего мира в одном месте.",
+        platform: "Платформа",
+        catalog: "Каталог",
+        forSellers: "Для продавцов",
+        links: {
+            platform: ["О платформе", "Как это работает", "Тарифы", "FAQ"],
+            catalog: ["Одежда", "Текстиль для дома", "Обувь", "Ковры"],
+            sellers: ["Разместить мини-сайт", "Личный кабинет", "Добавить товары", "Получать RFQ"],
+        },
+        rights: "Все права защищены.",
+        terms: "Условия использования",
+        privacy: "Политика конфиденциальности",
+        contacts: "Контакты",
+    },
+    en: {
+        ctaTitle: "🏭 Are You a Manufacturer?",
+        ctaDesc: "Create your factory mini-site for free and receive B2B orders from CIS and Europe",
+        ctaBtn: "Add Your Factory →",
+        description: "Unified B2B marketplace for Uzbekistan light industry. Manufacturers and buyers from around the world — in one place.",
+        platform: "Platform",
+        catalog: "Catalog",
+        forSellers: "For Sellers",
+        links: {
+            platform: ["About", "How It Works", "Pricing", "FAQ"],
+            catalog: ["Clothing", "Home Textile", "Footwear", "Carpets"],
+            sellers: ["Create Mini-Site", "Dashboard", "Add Products", "Receive RFQs"],
+        },
+        rights: "All rights reserved.",
+        terms: "Terms of Use",
+        privacy: "Privacy Policy",
+        contacts: "Contact Us",
+    },
+} as const;
