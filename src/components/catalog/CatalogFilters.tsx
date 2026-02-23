@@ -1,13 +1,29 @@
 "use client";
+import { useState } from "react";
+import { useT } from "@/contexts/LanguageContext";
 import { CATEGORIES, REGIONS, ProductType } from "@/lib/data";
+import { INDUSTRY_TAXONOMY } from "@/lib/taxonomy";
 
-interface FilterState {
-    categories: string[];
+// FilterState is exported so both this component and the page share one definition
+export interface FilterState {
+    industrySlug: string;       // top-level direction from taxonomy, "" = all
+    subcategorySlugs: string[]; // subcategory slugs within selected industry
+    categories: string[];       // flat legacy category slugs
     types: ProductType[];
     regions: string[];
     priceMax: number;
     verifiedOnly: boolean;
 }
+
+export const DEFAULT_FILTERS: FilterState = {
+    industrySlug: "",
+    subcategorySlugs: [],
+    categories: [],
+    types: [],
+    regions: [],
+    priceMax: 999,
+    verifiedOnly: false,
+};
 
 interface CatalogFiltersProps {
     filters: FilterState;
@@ -15,11 +31,27 @@ interface CatalogFiltersProps {
 }
 
 export default function CatalogFilters({ filters, onChange }: CatalogFiltersProps) {
-    function toggleCategory(slug: string) {
-        const next = filters.categories.includes(slug)
-            ? filters.categories.filter(c => c !== slug)
-            : [...filters.categories, slug];
-        onChange({ ...filters, categories: next });
+    const { t, lang } = useT();
+    const L = t.catalog;
+    const [expandedIndustry, setExpandedIndustry] = useState<string | null>(
+        filters.industrySlug || null
+    );
+
+    function selectIndustry(slug: string) {
+        const isDeselecting = filters.industrySlug === slug;
+        setExpandedIndustry(isDeselecting ? null : slug);
+        onChange({
+            ...filters,
+            industrySlug: isDeselecting ? "" : slug,
+            subcategorySlugs: [],
+        });
+    }
+
+    function toggleSubcategory(slug: string) {
+        const next = filters.subcategorySlugs.includes(slug)
+            ? filters.subcategorySlugs.filter(s => s !== slug)
+            : [...filters.subcategorySlugs, slug];
+        onChange({ ...filters, subcategorySlugs: next });
     }
 
     function toggleType(type: ProductType) {
@@ -37,19 +69,23 @@ export default function CatalogFilters({ filters, onChange }: CatalogFiltersProp
     }
 
     const typeOptions: { value: ProductType; label: string; color: string; dot: string }[] = [
-        { value: "instock", label: "Со склада (In-Stock)", color: "#16a34a", dot: "#22c55e" },
-        { value: "whitelabel", label: "Свой бренд (White Label)", color: "#0e7bc4", dot: "#3b82f6" },
-        { value: "rfq", label: "По ТЗ клиента (RFQ)", color: "#7c3aed", dot: "#a855f7" },
+        { value: "instock", label: lang === "ru" ? "Со склада (In-Stock)" : "In-Stock (Ready Goods)", color: "#16a34a", dot: "#22c55e" },
+        { value: "whitelabel", label: lang === "ru" ? "Свой бренд (White Label)" : "Own Brand (White Label)", color: "#0e7bc4", dot: "#3b82f6" },
+        { value: "rfq", label: lang === "ru" ? "По ТЗ клиента (RFQ)" : "Custom Production (RFQ)", color: "#7c3aed", dot: "#a855f7" },
     ];
 
     const activeCount =
+        (filters.industrySlug ? 1 : 0) +
+        filters.subcategorySlugs.length +
         filters.categories.length +
         filters.types.length +
         filters.regions.length +
         (filters.verifiedOnly ? 1 : 0);
 
+    const selectedIndustry = INDUSTRY_TAXONOMY.find(i => i.slug === expandedIndustry);
+
     return (
-        <aside style={{ width: 260, flexShrink: 0 }}>
+        <aside style={{ width: 268, flexShrink: 0 }}>
             <style>{`
         .filter-section { margin-bottom: 24px; }
         .filter-title {
@@ -58,81 +94,129 @@ export default function CatalogFilters({ filters, onChange }: CatalogFiltersProp
           margin-bottom: 12px;
         }
         .filter-check {
-          display: flex; align-items: center; gap: 8px;
-          padding: 6px 8px; border-radius: 8px;
-          cursor: pointer; transition: background 0.15s;
+          display: flex; align-items: center; gap: 10px;
+          padding: 8px 10px; border-radius: 12px;
+          cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           font-size: 13px; color: var(--color-text-secondary);
-          margin-bottom: 2px; border: none; background: transparent;
+          margin-bottom: 4px; border: none; background: transparent;
           width: 100%; text-align: left;
         }
-        .filter-check:hover { background: var(--color-bg); }
-        .filter-check.active { color: var(--color-text); font-weight: 600; }
+        .filter-check:hover { background: var(--color-bg); transform: translateX(2px); }
+        .filter-check.active { color: var(--color-text); font-weight: 600; background: var(--color-bg); }
         .custom-checkbox {
-          width: 16px; height: 16px; border-radius: 4px;
+          width: 18px; height: 18px; border-radius: 6px;
           border: 1.5px solid var(--color-border-strong);
           display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0; transition: all 0.15s;
+          flex-shrink: 0; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .custom-checkbox.checked {
           background: var(--color-accent);
           border-color: var(--color-accent);
+          box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
         }
+        .industry-btn {
+          display: flex; align-items: center; justify-content: space-between;
+          width: 100%; padding: 10px 14px; border-radius: var(--radius-xl); /* Pill shaped */
+          border: 1.5px solid var(--color-border); cursor: pointer;
+          font-size: 13px; font-weight: 600; text-align: left;
+          background: white; margin-bottom: 6px; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .industry-btn:hover { border-color: var(--color-primary); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+        .industry-btn.selected { border-color: var(--color-primary); background: #f0f6ff; color: var(--color-primary); box-shadow: inset 0 0 0 1px var(--color-primary); }
+        .subcat-btn {
+          display: flex; align-items: center; gap: 10px;
+          width: 100%; padding: 6px 10px 6px 24px; border-radius: 10px;
+          border: none; cursor: pointer; font-size: 13px; background: transparent;
+          text-align: left; color: var(--color-text-secondary); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          margin-bottom: 2px;
+        }
+        .subcat-btn:hover { background: var(--color-bg); color: var(--color-text); }
+        .subcat-btn.active { color: var(--color-primary); font-weight: 700; background: var(--color-bg); }
       `}</style>
 
             <div style={{
-                background: "white",
-                border: "1px solid var(--color-border)",
-                borderRadius: 16,
-                padding: "20px 16px",
-                position: "sticky",
-                top: 84,
+                background: "white", border: "1px solid var(--color-border)",
+                borderRadius: "var(--radius-xl)", padding: "24px 20px", position: "sticky", top: 90,
+                boxShadow: "var(--shadow-card)"
             }}>
                 {/* Header */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
                     <span style={{ fontWeight: 700, fontSize: 15, color: "var(--color-text)" }}>
-                        Фильтры
+                        {L.filters}
                         {activeCount > 0 && (
-                            <span style={{
-                                marginLeft: 6, background: "var(--color-accent)", color: "white",
-                                borderRadius: 10, fontSize: 11, padding: "1px 7px", fontWeight: 700,
-                            }}>{activeCount}</span>
+                            <span style={{ marginLeft: 6, background: "var(--color-accent)", color: "white", borderRadius: 10, fontSize: 11, padding: "1px 7px", fontWeight: 700 }}>
+                                {activeCount}
+                            </span>
                         )}
                     </span>
                     {activeCount > 0 && (
-                        <button onClick={() => onChange({ categories: [], types: [], regions: [], priceMax: 999, verifiedOnly: false })} style={{
-                            fontSize: 12, color: "var(--color-accent)", fontWeight: 600,
-                            background: "none", border: "none", cursor: "pointer",
-                        }}>Сбросить</button>
+                        <button onClick={() => { setExpandedIndustry(null); onChange(DEFAULT_FILTERS); }} style={{ fontSize: 12, color: "var(--color-accent)", fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}>
+                            {L.reset}
+                        </button>
                     )}
                 </div>
 
-                {/* Verified */}
+                {/* ── Taxonomy: Industry Directions ── */}
                 <div className="filter-section">
-                    <button
-                        className={`filter-check ${filters.verifiedOnly ? "active" : ""}`}
-                        onClick={() => onChange({ ...filters, verifiedOnly: !filters.verifiedOnly })}
-                    >
+                    <div className="filter-title">
+                        🗂 {lang === "ru" ? "Направление" : "Direction"}
+                    </div>
+                    {INDUSTRY_TAXONOMY.map(industry => {
+                        const isSelected = filters.industrySlug === industry.slug;
+                        const isExpanded = expandedIndustry === industry.slug;
+                        return (
+                            <div key={industry.slug}>
+                                <button
+                                    className={`industry-btn ${isSelected ? "selected" : ""}`}
+                                    onClick={() => selectIndustry(industry.slug)}
+                                    style={{ borderColor: isSelected ? industry.color : undefined, color: isSelected ? industry.color : undefined, background: isSelected ? `${industry.color}10` : undefined }}
+                                >
+                                    <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                                        <span style={{ fontSize: 16 }}>{industry.icon}</span>
+                                        {industry.label[lang]}
+                                    </span>
+                                    <span style={{ fontSize: 11, color: isSelected ? industry.color : "var(--color-muted)", transition: "transform 0.2s", display: "inline-block", transform: isExpanded ? "rotate(180deg)" : "rotate(0)" }}>▾</span>
+                                </button>
+
+                                {/* Subcategories accordion */}
+                                {isExpanded && (
+                                    <div style={{ marginBottom: 6 }}>
+                                        {industry.subcategories.map(sub => {
+                                            const isSubActive = filters.subcategorySlugs.includes(sub.slug);
+                                            return (
+                                                <button key={sub.slug} className={`subcat-btn ${isSubActive ? "active" : ""}`} onClick={() => toggleSubcategory(sub.slug)}>
+                                                    <div className={`custom-checkbox ${isSubActive ? "checked" : ""}`} style={{ width: 14, height: 14, borderColor: isSubActive ? industry.color : undefined, background: isSubActive ? industry.color : undefined }}>
+                                                        {isSubActive && <svg width="9" height="9" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.8" strokeLinecap="round" fill="none" /></svg>}
+                                                    </div>
+                                                    <span style={{ fontSize: 14 }}>{sub.icon}</span>
+                                                    <span>{sub.label[lang]}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* ── Verified ── */}
+                <div className="filter-section">
+                    <button className={`filter-check ${filters.verifiedOnly ? "active" : ""}`} onClick={() => onChange({ ...filters, verifiedOnly: !filters.verifiedOnly })}>
                         <div className={`custom-checkbox ${filters.verifiedOnly ? "checked" : ""}`}>
                             {filters.verifiedOnly && <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" /></svg>}
                         </div>
-                        <span>⭐ Только проверенные</span>
+                        <span>{L.verifiedOnly}</span>
                     </button>
                 </div>
 
-                {/* Type */}
+                {/* ── Type ── */}
                 <div className="filter-section">
-                    <div className="filter-title">Тип размещения</div>
+                    <div className="filter-title">{L.typeLabel}</div>
                     {typeOptions.map(opt => (
-                        <button
-                            key={opt.value}
-                            className={`filter-check ${filters.types.includes(opt.value) ? "active" : ""}`}
-                            onClick={() => toggleType(opt.value)}
-                        >
+                        <button key={opt.value} className={`filter-check ${filters.types.includes(opt.value) ? "active" : ""}`} onClick={() => toggleType(opt.value)}>
                             <div className={`custom-checkbox ${filters.types.includes(opt.value) ? "checked" : ""}`}
-                                style={{
-                                    borderColor: filters.types.includes(opt.value) ? opt.color : undefined,
-                                    background: filters.types.includes(opt.value) ? opt.color : undefined
-                                }}>
+                                style={{ borderColor: filters.types.includes(opt.value) ? opt.color : undefined, background: filters.types.includes(opt.value) ? opt.color : undefined }}>
                                 {filters.types.includes(opt.value) && <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" /></svg>}
                             </div>
                             <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -143,36 +227,15 @@ export default function CatalogFilters({ filters, onChange }: CatalogFiltersProp
                     ))}
                 </div>
 
-                {/* Categories */}
-                <div className="filter-section">
-                    <div className="filter-title">Категория</div>
-                    {CATEGORIES.map(cat => (
-                        <button
-                            key={cat.slug}
-                            className={`filter-check ${filters.categories.includes(cat.slug) ? "active" : ""}`}
-                            onClick={() => toggleCategory(cat.slug)}
-                        >
-                            <div className={`custom-checkbox ${filters.categories.includes(cat.slug) ? "checked" : ""}`}>
-                                {filters.categories.includes(cat.slug) && <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" /></svg>}
-                            </div>
-                            {cat.label}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Regions */}
+                {/* ── Regions ── */}
                 <div className="filter-section" style={{ marginBottom: 0 }}>
-                    <div className="filter-title">Регион</div>
+                    <div className="filter-title">{L.regionLabel}</div>
                     {REGIONS.map(region => (
-                        <button
-                            key={region}
-                            className={`filter-check ${filters.regions.includes(region) ? "active" : ""}`}
-                            onClick={() => toggleRegion(region)}
-                        >
-                            <div className={`custom-checkbox ${filters.regions.includes(region) ? "checked" : ""}`}>
-                                {filters.regions.includes(region) && <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" /></svg>}
+                        <button key={region.ru} className={`filter-check ${filters.regions.includes(region.ru) ? "active" : ""}`} onClick={() => toggleRegion(region.ru)}>
+                            <div className={`custom-checkbox ${filters.regions.includes(region.ru) ? "checked" : ""}`}>
+                                {filters.regions.includes(region.ru) && <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" /></svg>}
                             </div>
-                            {region}
+                            {lang === "ru" ? region.ru : region.en}
                         </button>
                     ))}
                 </div>

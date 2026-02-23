@@ -1,8 +1,9 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useT } from "@/contexts/LanguageContext";
-import { COMPANIES, CATEGORIES, REGIONS, ProductType } from "@/lib/data";
+import { CATEGORIES, REGIONS, ProductType } from "@/lib/data";
+import { Company } from "@prisma/client";
 
 type SortCompany = "rating" | "orders" | "newest" | "ontime";
 
@@ -83,12 +84,27 @@ export default function CompaniesPage() {
         rfq: { ru: "RFQ", en: "RFQ" },
     };
 
+    const [companies, setCompanies] = useState<Company[]>([]);
+    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [categories, setCategories] = useState<string[]>([]);
     const [flows, setFlows] = useState<ProductType[]>([]);
     const [regions, setRegions] = useState<string[]>([]);
     const [verifiedOnly, setVerifiedOnly] = useState(false);
     const [sort, setSort] = useState<SortCompany>("rating");
+
+    useEffect(() => {
+        fetch("/api/companies")
+            .then(res => res.json())
+            .then(data => {
+                setCompanies(data);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error("Failed to fetch companies:", err);
+                setLoading(false);
+            });
+    }, []);
 
     function toggle<T>(arr: T[], val: T): T[] {
         return arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];
@@ -98,10 +114,14 @@ export default function CompaniesPage() {
     const activeCount = categories.length + flows.length + regions.length + (verifiedOnly ? 1 : 0);
 
     const filtered = useMemo(() => {
-        let res = [...COMPANIES];
+        let res = [...companies];
         if (search.trim()) {
             const q = search.toLowerCase();
-            res = res.filter(c => c.name.toLowerCase().includes(q) || c.region.toLowerCase().includes(q) || c.specialization[lang].toLowerCase().includes(q));
+            res = res.filter(c =>
+                c.name.toLowerCase().includes(q) ||
+                c.region.toLowerCase().includes(q) ||
+                (lang === "ru" ? c.specializationRu : c.specializationEn).toLowerCase().includes(q)
+            );
         }
         if (verifiedOnly) res = res.filter(c => c.verified);
         if (flows.length) res = res.filter(c => flows.some(f => c.flows.includes(f)));
@@ -109,11 +129,11 @@ export default function CompaniesPage() {
         if (regions.length) res = res.filter(c => regions.includes(c.region));
 
         if (sort === "rating") res.sort((a, b) => b.rating - a.rating);
-        else if (sort === "orders") res.sort((a, b) => b.stats.ordersCompleted - a.stats.ordersCompleted);
-        else if (sort === "ontime") res.sort((a, b) => b.stats.onTimeDelivery - a.stats.onTimeDelivery);
+        else if (sort === "orders") res.sort((a, b) => b.ordersCompleted - a.ordersCompleted);
+        else if (sort === "ontime") res.sort((a, b) => b.onTimeDelivery - a.onTimeDelivery);
         else if (sort === "newest") res.sort((a, b) => b.founded - a.founded);
         return res;
-    }, [search, verifiedOnly, flows, categories, regions, sort, lang]);
+    }, [companies, search, verifiedOnly, flows, categories, regions, sort, lang]);
 
     return (
         <div style={{ background: "var(--color-bg)", minHeight: "100vh" }}>
@@ -122,7 +142,7 @@ export default function CompaniesPage() {
                 <div className="container">
                     <h1 style={{ color: "white", fontSize: 32, fontWeight: 900, marginBottom: 6 }}>{L.title}</h1>
                     <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 15, marginBottom: 24 }}>
-                        {COMPANIES.length}+ {L.subtitle}
+                        {companies.length}+ {L.subtitle}
                     </p>
                     {/* Search */}
                     <div style={{ display: "flex", background: "white", borderRadius: 12, overflow: "hidden", maxWidth: 560, boxShadow: "0 4px 24px rgba(0,0,0,0.2)" }}>
@@ -281,12 +301,12 @@ export default function CompaniesPage() {
 
                                                     {/* Description */}
                                                     <p style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.55, marginBottom: 10, maxWidth: 500 }}>
-                                                        {c.description[lang]}
+                                                        {lang === "ru" ? c.descriptionRu : c.descriptionEn}
                                                     </p>
 
                                                     {/* Specialization tags */}
                                                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                                                        {c.specialization[lang].split(", ").slice(0, 3).map(s => (
+                                                        {(lang === "ru" ? c.specializationRu : c.specializationEn).split(", ").slice(0, 3).map((s: string) => (
                                                             <span key={s} style={{ background: "var(--color-surface)", border: "1px solid var(--color-border-strong)", borderRadius: 14, padding: "3px 10px", fontSize: 11, fontWeight: 600, color: "var(--color-text-secondary)" }}>{s}</span>
                                                         ))}
                                                     </div>
@@ -306,11 +326,11 @@ export default function CompaniesPage() {
                                                     {/* Mini stats */}
                                                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 12px", marginBottom: 12 }}>
                                                         {[
-                                                            { v: c.stats.ordersCompleted.toLocaleString(), l: L.orders },
-                                                            { v: `${c.stats.repeatClients}%`, l: L.repeatClients },
-                                                            { v: `${c.stats.onTimeDelivery}%`, l: L.onTime },
-                                                            { v: `${c.stats.avgResponseHours}${L.hours}`, l: L.response },
-                                                        ].map(s => (
+                                                            { v: c.ordersCompleted.toLocaleString(), l: L.orders },
+                                                            { v: `${c.repeatClients}%`, l: L.repeatClients },
+                                                            { v: `${c.onTimeDelivery}%`, l: L.onTime },
+                                                            { v: `${c.avgResponseHours}${L.hours}`, l: L.response },
+                                                        ].map((s: any) => (
                                                             <div key={s.l} style={{ textAlign: "right" }}>
                                                                 <div style={{ fontSize: 14, fontWeight: 800, color: "var(--color-primary)" }}>{s.v}</div>
                                                                 <div style={{ fontSize: 10, color: "var(--color-muted)" }}>{s.l}</div>

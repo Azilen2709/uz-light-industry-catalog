@@ -307,12 +307,68 @@ export const INDUSTRY_TAXONOMY: IndustryCategory[] = [
     },
 ];
 
-// Helper: get all subcategory slugs flat
+// ─── Category → Size Table Mapping ───────────────────────────────────────
+// Maps BOTH flat CATEGORIES slugs (from lib/data/categories.ts)
+// AND taxonomy subcategory slugs to their size table type.
+// This is the single authoritative lookup — use getSizeTableType() everywhere.
+
+export const CATEGORY_SIZE_TABLE_MAP: Record<string, SizeTable["type"]> = {
+    // ── Flat CATEGORIES slugs (used as Product.categorySlug) ──
+    "outerwear": "clothing",
+    "dresses": "clothing",
+    "footwear": "footwear",
+    "home-textile": "none",
+    "knitwear": "clothing",
+    "accessories": "none",
+    "carpets": "carpet",
+    "workwear": "clothing",
+
+    // ── Taxonomy subcategory slugs (Textile) ──
+    "sportswear": "clothing",
+    "children-wear": "clothing",
+
+    // ── Taxonomy subcategory slugs (Silk) ──
+    "natural-silk": "fabric",
+    "silk-dresses": "clothing",
+    "satin-fabric": "fabric",
+    "silk-scarves": "none",
+    "ikat": "fabric",
+
+    // ── Taxonomy subcategory slugs (Leather) ──
+    "leather-goods": "none",
+    "leather-bags": "none",
+    "leather-jackets": "clothing",
+    "belts-accessories": "none",
+    "raw-leather": "fabric",
+
+    // ── Taxonomy subcategory slugs (Footwear) ──
+    "mens-footwear": "footwear",
+    "womens-footwear": "footwear",
+    "children-footwear": "footwear",
+    "sports-footwear": "footwear",
+    "national-footwear": "footwear",
+
+    // ── Taxonomy subcategory slugs (Carpets) ──
+    "handmade-carpets": "carpet",
+    "machine-carpets": "carpet",
+    "silk-carpets": "carpet",
+    "carpet-runners": "carpet",
+    "national-carpet": "carpet",
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+
+// Primary function: resolve size table type from ANY slug
+export function getSizeTableType(slug: string): SizeTable["type"] {
+    return CATEGORY_SIZE_TABLE_MAP[slug] ?? "none";
+}
+
+// Get all subcategory slugs flat
 export function getAllSubcategorySlugs(): string[] {
     return INDUSTRY_TAXONOMY.flatMap(ind => ind.subcategories.map(s => s.slug));
 }
 
-// Helper: find subcategory by slug
+// Find subcategory by slug (within taxonomy)
 export function findSubcategory(slug: string): SubCategory | undefined {
     for (const ind of INDUSTRY_TAXONOMY) {
         const sub = ind.subcategories.find(s => s.slug === slug);
@@ -321,9 +377,19 @@ export function findSubcategory(slug: string): SubCategory | undefined {
     return undefined;
 }
 
-// Helper: find parent industry by subcategory slug
+// Find parent industry by subcategory slug
 export function findIndustry(subcategorySlug: string): IndustryCategory | undefined {
     return INDUSTRY_TAXONOMY.find(ind =>
         ind.subcategories.some(s => s.slug === subcategorySlug)
     );
 }
+
+// Find parent industry by flat category slug (via CATEGORY_SIZE_TABLE_MAP)
+export function findIndustryByCategory(categorySlug: string): IndustryCategory | undefined {
+    // First try direct match in subcategories
+    const bySubcat = findIndustry(categorySlug);
+    if (bySubcat) return bySubcat;
+    // Then try matching flat slug against industry-level slugs
+    return INDUSTRY_TAXONOMY.find(ind => ind.slug === categorySlug);
+}
+

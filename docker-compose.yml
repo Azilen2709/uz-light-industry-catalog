@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: b2b_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: b2b_portal
+    ports:
+      - "5432:5432"
+    volumes:
+      - b2b_pgdata:/var/lib/postgresql/data
+
+volumes:
+  b2b_pgdata:

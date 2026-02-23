@@ -313,21 +313,29 @@ export default function ProductPage() {
                         {/* CTA Buttons */}
                         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                             {product.type === "instock" && (
-                                <button className="btn btn-primary btn-lg" style={{ width: "100%", fontSize: 16 }}>
+                                <Link href="/cart" className="btn btn-primary btn-lg" style={{ width: "100%", fontSize: 16 }}>
                                     🛒 {pt.buyNow}
-                                </button>
+                                </Link>
                             )}
                             {product.type === "rfq" && (
-                                <button className="btn btn-primary btn-lg" style={{ width: "100%", fontSize: 16, background: "#7c3aed" }}>
+                                <Link
+                                    href={`/rfq/new?category=${product.categorySlug}&flow=rfq`}
+                                    className="btn btn-primary btn-lg"
+                                    style={{ width: "100%", fontSize: 16, background: "#7c3aed" }}
+                                >
                                     📐 {pt.submitRFQ}
-                                </button>
+                                </Link>
                             )}
                             {product.type === "whitelabel" && (
-                                <button className="btn btn-primary btn-lg" style={{ width: "100%", fontSize: 16, background: "#1d4ed8" }}>
+                                <Link
+                                    href={`/rfq/new?category=${product.categorySlug}&flow=whitelabel`}
+                                    className="btn btn-primary btn-lg"
+                                    style={{ width: "100%", fontSize: 16, background: "#1d4ed8" }}
+                                >
                                     🏷️ {pt.requestQuote}
-                                </button>
+                                </Link>
                             )}
-                            <button className="btn btn-secondary btn-lg" style={{ width: "100%" }}>
+                            <button className="btn btn-secondary btn-lg" style={{ width: "100%" }} onClick={() => alert("Chat modal would open here!")}>
                                 💬 {pt.contactFactory}
                             </button>
                         </div>

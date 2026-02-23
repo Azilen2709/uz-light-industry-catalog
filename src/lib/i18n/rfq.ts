@@ -1,0 +1,163 @@
+export const rfqTranslations = {
+    ru: {
+        // Nav / page title
+        title: "Запросы на производство (RFQ)",
+        subtitle: "Опишите задачу — получите предложения от фабрик",
+        newRfq: "Новый RFQ",
+
+        // List page
+        myRfqs: "Мои запросы",
+        noRfqs: "У вас пока нет запросов",
+        noRfqsDesc: "Создайте первый RFQ и получите предложения от проверенных фабрик",
+        createFirst: "Создать запрос",
+        status: {
+            draft: "Черновик",
+            open: "Открытый",
+            inReview: "На рассмотрении",
+            closed: "Закрыт",
+        },
+
+        // Form page
+        formTitle: "Новый запрос на производство",
+        formSubtitle: "Заполните форму — мы подберём подходящие фабрики",
+
+        // Form steps
+        step1: "Описание товара",
+        step2: "Требования к производству",
+        step3: "Контакты",
+
+        // Form fields
+        productName: "Название товара / артикул",
+        productNamePlaceholder: "Например: Детский трикотажный костюм, арт. KD-220",
+        category: "Категория",
+        categoryPlaceholder: "Выберите категорию",
+        description: "Подробное описание",
+        descriptionPlaceholder: "Материал, размеры, цвета, особенности конструкции...",
+        targetQty: "Целевой объём заказа (шт.)",
+        targetQtyPlaceholder: "Например: 500",
+        budgetFrom: "Бюджет от ($/шт.)",
+        budgetTo: "до ($/шт.)",
+        quality: "Требования к качеству",
+        qualityPlaceholder: "Стандарты, сертификаты, тесты...",
+        deliveryDate: "Желаемая дата поставки",
+        destination: "Страна назначения",
+        destinationPlaceholder: "Например: Россия, Германия, ОАЭ",
+        flowType: "Тип сотрудничества",
+        flowInStock: "In-Stock — готовый товар",
+        flowWhiteLabel: "White Label — под ваш бренд",
+        flowRfq: "RFQ — производство по ТЗ",
+        attachments: "Прикрепить файлы",
+        attachmentsHint: "Технические задания, эскизы, образцы (PDF, JPG, PNG — до 10 МБ)",
+        attachmentBtn: "Выбрать файл",
+        noAttachment: "Файл не выбран",
+
+        // Contact
+        companyName: "Название компании",
+        companyNamePlaceholder: "ООО «Ваша компания»",
+        contactName: "Контактное лицо",
+        contactNamePlaceholder: "Иван Иванов",
+        contactEmail: "Email",
+        contactPhone: "WhatsApp / Телефон",
+        contactPhonePlaceholder: "+7 999 000 00 00",
+        preferContact: "Предпочтительный способ связи",
+        contactByEmail: "Email",
+        contactByWhatsapp: "WhatsApp",
+        contactByTelegram: "Telegram",
+
+        // Submit
+        submitRfq: "Отправить RFQ",
+        submitting: "Отправка...",
+        successTitle: "RFQ успешно отправлен!",
+        successDesc: "Мы передали ваш запрос подходящим фабрикам. Ожидайте ответа в течение 24–48 часов.",
+        successBack: "Вернуться в каталог",
+        newRequest: "Создать ещё один запрос",
+
+        // Validation
+        required: "Обязательное поле",
+        minChars: "Минимум {n} символов",
+
+        // Info block
+        howItWorksTitle: "Как работает RFQ",
+        step1Info: "Опишите товар и требования к производству",
+        step2Info: "Мы подберём подходящие фабрики и передадим им запрос",
+        step3Info: "Фабрики присылают коммерческие предложения — вы выбираете",
+        step4Info: "Заключаете договор и запускаете производство",
+        freeNote: "Создание RFQ — бесплатно. Без обязательств.",
+    },
+    en: {
+        title: "Request for Quotation (RFQ)",
+        subtitle: "Describe your task — receive proposals from factories",
+        newRfq: "New RFQ",
+
+        myRfqs: "My Requests",
+        noRfqs: "You have no requests yet",
+        noRfqsDesc: "Create your first RFQ and receive proposals from verified factories",
+        createFirst: "Create Request",
+        status: {
+            draft: "Draft",
+            open: "Open",
+            inReview: "In Review",
+            closed: "Closed",
+        },
+
+        formTitle: "New Production Request",
+        formSubtitle: "Fill in the form — we'll match you with the right factories",
+
+        step1: "Product Description",
+        step2: "Production Requirements",
+        step3: "Contact Details",
+
+        productName: "Product Name / SKU",
+        productNamePlaceholder: "E.g.: Children's knit suit, SKU KD-220",
+        category: "Category",
+        categoryPlaceholder: "Select category",
+        description: "Detailed Description",
+        descriptionPlaceholder: "Material, sizes, colors, construction details...",
+        targetQty: "Target Order Quantity (pcs.)",
+        targetQtyPlaceholder: "E.g.: 500",
+        budgetFrom: "Budget from ($/pc.)",
+        budgetTo: "to ($/pc.)",
+        quality: "Quality Requirements",
+        qualityPlaceholder: "Standards, certifications, tests...",
+        deliveryDate: "Desired Delivery Date",
+        destination: "Destination Country",
+        destinationPlaceholder: "E.g.: Germany, UAE, Kazakhstan",
+        flowType: "Cooperation Type",
+        flowInStock: "In-Stock — ready goods",
+        flowWhiteLabel: "White Label — under your brand",
+        flowRfq: "RFQ — custom production",
+        attachments: "Attach Files",
+        attachmentsHint: "Technical specs, sketches, samples (PDF, JPG, PNG — up to 10 MB)",
+        attachmentBtn: "Choose File",
+        noAttachment: "No file chosen",
+
+        companyName: "Company Name",
+        companyNamePlaceholder: "Your Company Ltd.",
+        contactName: "Contact Person",
+        contactNamePlaceholder: "John Smith",
+        contactEmail: "Email",
+        contactPhone: "WhatsApp / Phone",
+        contactPhonePlaceholder: "+1 999 000 0000",
+        preferContact: "Preferred Contact Method",
+        contactByEmail: "Email",
+        contactByWhatsapp: "WhatsApp",
+        contactByTelegram: "Telegram",
+
+        submitRfq: "Submit RFQ",
+        submitting: "Submitting...",
+        successTitle: "RFQ Successfully Submitted!",
+        successDesc: "We've forwarded your request to matching factories. Expect a response within 24–48 hours.",
+        successBack: "Back to Catalog",
+        newRequest: "Create Another Request",
+
+        required: "Required field",
+        minChars: "Minimum {n} characters",
+
+        howItWorksTitle: "How RFQ Works",
+        step1Info: "Describe the product and production requirements",
+        step2Info: "We match suitable factories and forward your request",
+        step3Info: "Factories send proposals — you choose the best fit",
+        step4Info: "Sign a contract and launch production",
+        freeNote: "Creating an RFQ is free. No obligations.",
+    },
+} as const;

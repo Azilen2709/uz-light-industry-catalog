@@ -1,0 +1,171 @@
+// ─── Prisma Schema ─────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ─────────────────────────────────────────────────────────────────
+
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+enum ProductFlow {
+  instock
+  whitelabel
+  rfq
+}
+
+enum RfqStatus {
+  OPEN
+  IN_PROGRESS
+  CLOSED
+  CANCELLED
+}
+
+// ─── Models ────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(BUYER)
+  companyId Int?
+
+  company          Company?      @relation(fields: [companyId], references: [id])
+  rfqs             RfqRequest[]
+  rfqResponses     RfqResponse[]
+  sentMessages     Message[]     @relation("SentMessages")
+  receivedMessages Message[]     @relation("ReceivedMessages")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Company {
+  id               Int         @id @default(autoincrement())
+  name             String
+  slug             String      @unique
+  region           String
+  country          String      @default("Узбекистан")
+  verified         Boolean     @default(false)
+  founded          Int
+  employees        String
+  rating           Float       @default(0)
+  reviewCount      Int         @default(0)
+  moqFrom          String
+  leadTime         String
+  flows            ProductFlow[]
+  exportCountries  String[]
+  certifications   String[]
+  industrySlugs    String[]
+  categories       String[]
+
+  // Bilingual text fields
+  descriptionRu    String      @default("")
+  descriptionEn    String      @default("")
+  aboutRu          String      @default("")
+  aboutEn          String      @default("")
+  specializationRu String      @default("")
+  specializationEn String      @default("")
+
+  // Stats
+  ordersCompleted  Int         @default(0)
+  repeatClients    Int         @default(0)
+  onTimeDelivery   Int         @default(0)
+  avgResponseHours Int         @default(24)
+
+  // Contacts
+  telegram         String?
+  whatsapp         String?
+  email            String?
+  website          String?
+  logo             String?
+
+  users    User[]
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id            Int         @id @default(autoincrement())
+  title         String
+  categorySlug  String
+  industrySlug  String
+  region        String
+  moq           String
+  priceFrom     Float
+  priceTo       Float
+  priceCurrency String      @default("$")
+  priceUnit     String
+  type          ProductFlow
+  colors        String[]
+  leadTime      String
+  verified      Boolean     @default(false)
+  tags          String[]
+  image         String?
+
+  companyId Int
+  company   Company @relation(fields: [companyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RfqRequest {
+  id          String    @id @default(cuid())
+  title       String
+  category    String
+  categorySlug String   @default("")
+  quantity    String
+  budget      String?
+  deadline    String?
+  description String?
+  status      RfqStatus @default(OPEN)
+
+  buyerId String
+  buyer   User   @relation(fields: [buyerId], references: [id])
+
+  responses RfqResponse[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RfqResponse {
+  id       String @id @default(cuid())
+  price    String
+  comment  String?
+
+  rfqId String
+  rfq   RfqRequest @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+
+  sellerId String
+  seller   User   @relation(fields: [sellerId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id     String   @id @default(cuid())
+  text   String
+  rfqId  String?
+  readAt DateTime?
+
+  fromId String
+  from   User   @relation("SentMessages", fields: [fromId], references: [id])
+
+  toId String
+  to   User @relation("ReceivedMessages", fields: [toId], references: [id])
+
+  createdAt DateTime @default(now())
+}

@@ -13,6 +13,7 @@ import { footerTranslations } from "./footer";
 import { catalogTranslations } from "./catalog";
 import { productTranslations } from "./product";
 import { commonTranslations } from "./common";
+import { rfqTranslations } from "./rfq";
 
 export type { Lang } from "./types";
 
@@ -29,6 +30,7 @@ export const translations = {
         catalog: catalogTranslations.ru,
         product: productTranslations.ru,
         common: commonTranslations.ru,
+        rfq: rfqTranslations.ru,
     },
     en: {
         nav: navTranslations.en,
@@ -42,6 +44,7 @@ export const translations = {
         catalog: catalogTranslations.en,
         product: productTranslations.en,
         common: commonTranslations.en,
+        rfq: rfqTranslations.en,
     },
 } as const;
 

@@ -53,53 +53,86 @@ export default function HowItWorksSection() {
 
     return (
         <section className="section" style={{ background: "var(--color-bg)" }}>
+            <style>{`
+        .hiw-card {
+          border-radius: var(--radius-lg);
+          padding: 32px 28px;
+          display: flex;
+          flex-direction: column;
+          box-shadow: var(--shadow-sm);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          position: relative;
+          overflow: hidden;
+        }
+        .hiw-card:hover {
+          transform: translateY(-4px);
+          box-shadow: var(--shadow-card-hover);
+        }
+        .hiw-cta {
+          display: inline-block;
+          padding: 12px 24px;
+          border-radius: var(--radius-xl); /* Pill shape CTA */
+          color: white;
+          font-weight: 700;
+          font-size: 14px;
+          text-decoration: none;
+          text-align: center;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08); /* Soft diffuse shadow */
+        }
+        .hiw-cta:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(15, 23, 42, 0.15); /* Slightly darker focus shadow */
+          filter: brightness(1.05);
+        }
+      `}</style>
             <div className="container">
-                <div style={{ textAlign: "center", maxWidth: 640, margin: "0 auto 48px" }}>
-                    <p style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-accent)", marginBottom: 8 }}>
+                <div style={{ textAlign: "center", maxWidth: 640, margin: "0 auto 56px" }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-accent)", marginBottom: 12 }}>
                         {hiw.eyebrow}
                     </p>
-                    <h2 style={{ fontSize: 36, marginBottom: 16 }}>{hiw.title}</h2>
-                    <p style={{ fontSize: 16, color: "var(--color-text-secondary)", lineHeight: 1.7 }}>{hiw.subtitle}</p>
+                    <h2 style={{ fontSize: 36, marginBottom: 16, fontWeight: 800, color: "var(--color-primary)", letterSpacing: "-0.02em" }}>{hiw.title}</h2>
+                    <p style={{ fontSize: 16, color: "var(--color-text-secondary)", lineHeight: 1.6, fontWeight: 400 }}>{hiw.subtitle}</p>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
                     {steps.map((step) => (
-                        <div key={step.flow} style={{
-                            background: step.bgColor, border: `1px solid ${step.borderColor}`,
-                            borderRadius: 20, padding: 28, display: "flex", flexDirection: "column",
+                        <div key={step.flow} className="hiw-card" style={{
+                            background: step.bgColor,
+                            border: `1px solid ${step.borderColor}`,
                         }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
                                 <div style={{
-                                    width: 44, height: 44, borderRadius: 12,
-                                    background: step.color, display: "flex", alignItems: "center",
-                                    justifyContent: "center", fontSize: 22,
+                                    width: 48, height: 48, borderRadius: "var(--radius-md)",
+                                    background: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center",
+                                    justifyContent: "center", fontSize: 24, boxShadow: "0 2px 8px rgba(0,0,0,0.04)"
                                 }}>{step.icon}</div>
-                                <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: step.color }}>
+                                <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: step.color }}>
                                     {step.flow}
                                 </span>
                             </div>
 
-                            <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 10, color: "var(--color-text)" }}>{step.title}</h3>
-                            <p style={{ fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.65, marginBottom: 20, flex: 1 }}>{step.description}</p>
+                            <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 12, color: "var(--color-primary)", letterSpacing: "-0.01em" }}>{step.title}</h3>
+                            <p style={{ fontSize: 15, color: "var(--color-text)", lineHeight: 1.6, marginBottom: 24, flex: 1 }}>{step.description}</p>
 
-                            <div style={{ marginBottom: 20 }}>
+                            <div style={{ marginBottom: 28 }}>
                                 {step.stepsList.map((s, i) => (
-                                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
+                                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
                                         <div style={{
-                                            width: 22, height: 22, borderRadius: "50%", background: step.color,
-                                            color: "white", fontSize: 11, fontWeight: 700, flexShrink: 0,
+                                            width: 24, height: 24, borderRadius: "50%", background: "white",
+                                            color: step.color, fontSize: 12, fontWeight: 800, flexShrink: 0,
                                             display: "flex", alignItems: "center", justifyContent: "center",
+                                            border: `1.5px solid ${step.color}`,
+                                            boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
                                         }}>{i + 1}</div>
-                                        <span style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.5 }}>{s}</span>
+                                        <span style={{ fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.5, fontWeight: 500 }}>{s}</span>
                                     </div>
                                 ))}
                             </div>
 
-                            <Link href={step.href} style={{
-                                display: "inline-block", padding: "10px 18px", borderRadius: 10,
-                                background: step.color, color: "white", fontWeight: 700, fontSize: 13,
-                                textDecoration: "none", textAlign: "center",
-                            }}>{step.cta} →</Link>
+                            <Link href={step.href} className="hiw-cta" style={{ background: step.color }}>
+                                {step.cta} →
+                            </Link>
                         </div>
                     ))}
                 </div>

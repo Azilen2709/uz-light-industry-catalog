@@ -7,9 +7,11 @@ export interface Product {
     title: string;
     category: string;
     categorySlug: string;
+    /** Top-level industry direction slug (from INDUSTRY_TAXONOMY) */
+    industrySlug: string;
     company: string;
     companyId: number;
-    region: string;
+    region: string;          // stored in Russian (canonical)
     moq: string;
     priceFrom: number;
     priceTo: number;
@@ -27,7 +29,7 @@ export interface Company {
     id: number;
     name: string;
     slug: string;
-    region: string;
+    region: string;          // stored in Russian (canonical)
     country: string;
     verified: boolean;
     founded: number;
@@ -37,6 +39,8 @@ export interface Company {
     moqFrom: string;
     leadTime: string;
     categories: string[];      // category slugs
+    /** Top-level industry direction slugs */
+    industrySlugs: string[];
     flows: ProductType[];
     exportCountries: string[];
     certifications: string[];
@@ -55,10 +59,19 @@ export interface Company {
         email?: string;
         website?: string;
     };
+    logo?: string;
 }
 
 export interface Category {
     slug: string;
     label: string;       // RU
     labelEn: string;     // EN
+    industrySlug: string; // which top-level industry this belongs to
+}
+
+/** Bilingual region record */
+export interface Region {
+    slug: string;
+    ru: string;
+    en: string;
 }
