@@ -29,5 +29,22 @@ export default async function SellerDashboardPage() {
         where: { companyId: user.companyId }
     });
 
-    return <SellerDashboardClient company={company} myProducts={products} />;
+    // Also fetch RFQs: Open RFQs + RFQs this seller responded to
+    const rfqs = await prisma.rfqRequest.findMany({
+        where: {
+            OR: [
+                { status: "OPEN" },
+                { responses: { some: { sellerId: user.id } } }
+            ]
+        },
+        include: {
+            buyer: { select: { id: true, name: true, email: true } },
+            responses: {
+                where: { sellerId: user.id },
+            },
+        },
+        orderBy: { createdAt: "desc" }
+    });
+
+    return <SellerDashboardClient company={company} myProducts={products} rfqs={rfqs} />;
 }

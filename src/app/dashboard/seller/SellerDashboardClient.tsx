@@ -39,9 +39,10 @@ const rfqStatusCfg = {
 interface SellerDashboardClientProps {
     company: Company;
     myProducts: Product[];
+    rfqs?: any[]; // Open RFQs + RFQs this seller responded to
 }
 
-export default function SellerDashboardClient({ company, myProducts }: SellerDashboardClientProps) {
+export default function SellerDashboardClient({ company, myProducts, rfqs = [] }: SellerDashboardClientProps) {
     const { lang } = useT();
     const [tab, setTab] = useState<"rfq" | "orders" | "products">("rfq");
 
@@ -144,9 +145,9 @@ export default function SellerDashboardClient({ company, myProducts }: SellerDas
                                     marginBottom: -1, transition: "all 0.15s",
                                 }}>
                                     {t.label}
-                                    {t.key === "rfq" && INCOMING_RFQS.filter(r => r.status === "new").length > 0 && (
+                                    {t.key === "rfq" && rfqs.filter(r => r.responses.length === 0).length > 0 && (
                                         <span style={{ marginLeft: 6, background: "#ef4444", color: "white", borderRadius: 10, padding: "1px 6px", fontSize: 10, fontWeight: 700 }}>
-                                            {INCOMING_RFQS.filter(r => r.status === "new").length}
+                                            {rfqs.filter(r => r.responses.length === 0).length}
                                         </span>
                                     )}
                                 </button>
@@ -168,23 +169,25 @@ export default function SellerDashboardClient({ company, myProducts }: SellerDas
                                 ))}
                             </tr></thead>
                             <tbody>
-                                {INCOMING_RFQS.map(rfq => {
-                                    const cfg = rfqStatusCfg[rfq.status as keyof typeof rfqStatusCfg];
+                                {rfqs.map(rfq => {
+                                    const isResponded = rfq.responses && rfq.responses.length > 0;
+                                    const statusKey = isResponded ? "responded" : "new";
+                                    const cfg = rfqStatusCfg[statusKey as keyof typeof rfqStatusCfg];
                                     return (
-                                        <tr key={rfq.id} style={{ background: rfq.status === "new" ? "#fffbf0" : "white" }}>
-                                            <td style={tableCell}><strong>{rfq.country} {rfq.buyer}</strong></td>
+                                        <tr key={rfq.id} style={{ background: statusKey === "new" ? "#fffbf0" : "white" }}>
+                                            <td style={tableCell}><strong>{rfq.buyer?.name || "Покупатель"}</strong></td>
                                             <td style={tableCell}>{rfq.title}</td>
-                                            <td style={tableCell}>{rfq.qty}</td>
-                                            <td style={tableCell}><span style={{ color: "#15803d", fontWeight: 700 }}>{rfq.budget}</span></td>
-                                            <td style={tableCell}>{rfq.deadline}</td>
+                                            <td style={tableCell}>{rfq.quantity}</td>
+                                            <td style={tableCell}><span style={{ color: "#15803d", fontWeight: 700 }}>{rfq.budget || "—"}</span></td>
+                                            <td style={tableCell}>{rfq.deadline ? new Date(rfq.deadline).toLocaleDateString(lang) : "—"}</td>
                                             <td style={tableCell}>
                                                 <span style={{ background: cfg.bg, color: cfg.color, fontWeight: 700, fontSize: 11, borderRadius: 8, padding: "3px 10px" }}>
                                                     {cfg.label[lang]}
                                                 </span>
                                             </td>
                                             <td style={tableCell}>
-                                                <Link href={`/rfq/${rfq.id}`} className="btn btn-primary" style={{ fontSize: 12, padding: "5px 12px" }}>
-                                                    {rfq.status === "new" ? L.respond : L.view}
+                                                <Link href={`/rfq/${rfq.id}`} className="btn btn-primary" style={{ fontSize: 12, padding: "5px 12px", textDecoration: "none" }}>
+                                                    {statusKey === "new" ? L.respond : L.view}
                                                 </Link>
                                             </td>
                                         </tr>

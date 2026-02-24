@@ -16,21 +16,38 @@ export async function GET(
         }
 
         const { id } = await params;
+        const userId = (session.user as { id: string }).id;
+        const role = (session.user as { role: string }).role;
+
         const rfq = await prisma.rfqRequest.findUnique({
             where: { id },
             include: {
                 buyer: { select: { id: true, name: true, email: true } },
                 responses: {
                     include: {
-                        seller: { select: { id: true, name: true, email: true, companyId: true } },
+                        seller: {
+                            select: {
+                                id: true, name: true, email: true,
+                                company: { select: { id: true, name: true, region: true, verified: true } }
+                            }
+                        },
                     },
-                    orderBy: { createdAt: "asc" },
+                    orderBy: { createdAt: "desc" },
                 },
             },
         });
 
         if (!rfq) {
             return NextResponse.json({ error: "RFQ not found" }, { status: 404 });
+        }
+
+        // Security / Privacy:
+        if (role === "BUYER" && rfq.buyerId !== userId) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+        if (role === "SELLER") {
+            // Sellers see only their own quotes
+            rfq.responses = rfq.responses.filter(r => r.sellerId === userId);
         }
 
         return NextResponse.json(rfq);

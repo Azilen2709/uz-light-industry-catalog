@@ -37,7 +37,12 @@ export async function POST(
         const response = await prisma.rfqResponse.create({
             data: { rfqId: id, sellerId, price, comment: comment ?? null },
             include: {
-                seller: { select: { id: true, name: true, email: true } },
+                seller: {
+                    select: {
+                        id: true, name: true, email: true,
+                        company: { select: { id: true, name: true, region: true, verified: true, rating: true } }
+                    }
+                },
             },
         });
 

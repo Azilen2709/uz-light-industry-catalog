@@ -153,9 +153,28 @@ export default function RFQNewPage() {
 
     const handleSubmit = async () => {
         setSubmitting(true);
-        // Simulate API call
-        await new Promise(r => setTimeout(r, 1200));
-        router.push("/rfq/1");
+        try {
+            const res = await fetch("/api/rfq", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title: form.title,
+                    category: selectedIndustry ? selectedIndustry.label[lang] : form.industrySlug,
+                    categorySlug: form.subcategorySlug || form.industrySlug,
+                    quantity: `${form.quantity} ${form.unit}`,
+                    budget: form.budget ? `${form.budget} ${form.currency}` : undefined,
+                    deadline: form.deadline,
+                    description: form.description
+                })
+            });
+            if (!res.ok) throw new Error("Failed to create RFQ");
+            const data = await res.json();
+            router.push(`/rfq/${data.id}`);
+        } catch (error) {
+            console.error(error);
+            alert(lang === "ru" ? "Ошибка при создании заявки. Попробуйте еще раз." : "Error creating RFQ. Please try again.");
+            setSubmitting(false);
+        }
     };
 
     const canGoNext1 = form.title.trim() && form.industrySlug;
@@ -283,8 +302,8 @@ export default function RFQNewPage() {
                                 <select value={form.subcategorySlug} onChange={e => set("subcategorySlug", e.target.value)}
                                     style={{ ...inputStyle, cursor: "pointer" }} disabled={!selectedIndustry}>
                                     <option value="">{L.chooseDirect}</option>
-                                    {selectedIndustry?.subcategories.map(s => (
-                                        <option key={s.slug} value={s.slug}>{s.icon} {s.label[lang]}</option>
+                                    {selectedIndustry?.categories.map(c => (
+                                        <option key={c.slug} value={c.slug}>{c.icon} {c.label[lang as "ru" | "en"]}</option>
                                     ))}
                                 </select>
                             </div>
