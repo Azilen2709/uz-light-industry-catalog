@@ -1,9 +1,10 @@
-"use client";
-import { useT } from "@/contexts/LanguageContext";
-import { PRODUCTS, CATEGORIES } from "@/lib/data";
-import { SIZE_TABLES, INDUSTRY_TAXONOMY } from "@/lib/taxonomy";
-import Link from "next/link";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
+import { useT } from "@/contexts/LanguageContext";
+import { CATEGORIES, getRegionLabel } from "@/lib/data";
+import { SIZE_TABLES, INDUSTRY_TAXONOMY } from "@/lib/taxonomy";
+import { Product, Company } from "@prisma/client";
 
 const typeColors = {
     instock: { bg: "#dcfce7", text: "#15803d" },
@@ -76,10 +77,46 @@ const defaultDetails = {
 export default function ProductPage() {
     const params = useParams();
     const { t, lang } = useT();
+    const [product, setProduct] = useState<(Product & { company: Company }) | null>(null);
+    const [related, setRelated] = useState<(Product & { company: { name: string } })[]>([]);
+    const [loading, setLoading] = useState(true);
     const pt = t.product;
 
     const productId = parseInt(params.id as string, 10);
-    const product = PRODUCTS.find(p => p.id === productId);
+
+    useEffect(() => {
+        if (!productId) return;
+        setLoading(true);
+        fetch(`/api/products/${productId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (!data.error) {
+                    setProduct(data);
+                    // Fetch related products
+                    fetch(`/api/products?category=${data.categorySlug}`)
+                        .then(res => res.json())
+                        .then(relData => {
+                            if (Array.isArray(relData)) {
+                                setRelated(relData.filter((p: any) => p.id !== data.id).slice(0, 3));
+                            }
+                        });
+                }
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error("Fetch product error:", err);
+                setLoading(false);
+            });
+    }, [productId]);
+
+    if (loading) {
+        return (
+            <div style={{ textAlign: "center", padding: "100px 24px" }}>
+                <div className="spinner" style={{ margin: "0 auto 20px" }} />
+                <p style={{ color: "var(--color-muted)" }}>{t.common.loading}...</p>
+            </div>
+        );
+    }
 
     if (!product) {
         return (
@@ -97,8 +134,6 @@ export default function ProductPage() {
     const categoryLabel = lang === "ru"
         ? CATEGORIES.find(c => c.slug === product.categorySlug)?.label
         : CATEGORIES.find(c => c.slug === product.categorySlug)?.labelEn;
-
-    const related = PRODUCTS.filter(p => p.categorySlug === product.categorySlug && p.id !== product.id).slice(0, 3);
 
     // Size table
     const sizeTableType = getSizeTableType(product.categorySlug);
@@ -121,7 +156,7 @@ export default function ProductPage() {
                         {categoryLabel}
                     </Link>
                     <span>›</span>
-                    <span style={{ color: "var(--color-text)", fontWeight: 600 }}>{product.title}</span>
+                    <span style={{ color: "var(--color-text)", fontWeight: 600 }}>{lang === "ru" ? product.titleRu : product.titleEn}</span>
                 </div>
             </div>
 
@@ -131,13 +166,18 @@ export default function ProductPage() {
                     <div>
                         {/* Main image placeholder */}
                         <div style={{
-                            background: "linear-gradient(135deg, #f0f6ff, #dbeeff)",
+                            background: "white",
                             borderRadius: 20, height: 400,
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 100, marginBottom: 20,
+                            marginBottom: 20,
                             border: "1px solid var(--color-border)", position: "relative",
+                            overflow: "hidden"
                         }}>
-                            🧵
+                            {(product as any).image ? (
+                                <img src={(product as any).image} alt={lang === "ru" ? product.titleRu : product.titleEn} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            ) : (
+                                <span style={{ fontSize: 100 }}>🧵</span>
+                            )}
                             {product.verified && (
                                 <div style={{ position: "absolute", top: 16, right: 16, background: "#fef9c3", color: "#854d0e", fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 20 }}>
                                     ✓ {pt.verified}
@@ -147,12 +187,15 @@ export default function ProductPage() {
 
                         {/* Thumbnail strip */}
                         <div style={{ display: "flex", gap: 10, marginBottom: 32 }}>
-                            {[1, 2, 3, 4].map(i => (
+                            {[product.image, ...Array(3)].map((img, i) => (
                                 <div key={i} style={{
-                                    width: 80, height: 80, borderRadius: 10, background: "linear-gradient(135deg, #f0f6ff, #e0ecff)",
-                                    border: i === 1 ? "2px solid var(--color-accent)" : "1px solid var(--color-border)",
-                                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 28,
-                                }}>🧵</div>
+                                    width: 80, height: 80, borderRadius: 10, background: "white",
+                                    border: i === 0 ? "2px solid var(--color-accent)" : "1px solid var(--color-border)",
+                                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+                                    overflow: "hidden"
+                                }}>
+                                    {img ? <img src={img} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 28 }}>🧵</span>}
+                                </div>
                             ))}
                         </div>
 
@@ -162,7 +205,7 @@ export default function ProductPage() {
                                 {lang === "ru" ? "Описание" : "Description"}
                             </h3>
                             <p style={{ fontSize: 15, lineHeight: 1.7, color: "var(--color-text-secondary)" }}>
-                                {details.description[lang]}
+                                {lang === "ru" ? product.company.descriptionRu : product.company.descriptionEn}
                             </p>
                         </div>
 
@@ -174,11 +217,11 @@ export default function ProductPage() {
                             <table style={{ width: "100%", borderCollapse: "collapse" }}>
                                 <tbody>
                                     {[
-                                        [pt.material, details.materials[lang]],
+                                        [pt.material, lang === "ru" ? details.materials.ru : details.materials.en],
                                         [pt.moq, product.moq],
                                         [pt.leadTime, product.leadTime],
-                                        [pt.shipFrom, `${product.region}, ${t.common.country}`],
-                                        [lang === "ru" ? "Регион" : "Region", product.region],
+                                        [pt.shipFrom, `${getRegionLabel(product.region, lang)}, ${t.common.country}`],
+                                        [lang === "ru" ? "Регион" : "Region", getRegionLabel(product.region, lang)],
                                     ].map(([label, value]) => (
                                         <tr key={label} style={{ borderBottom: "1px solid var(--color-border)" }}>
                                             <td style={{ padding: "10px 0", fontSize: 13, color: "var(--color-muted)", width: 180 }}>{label}</td>
@@ -208,7 +251,7 @@ export default function ProductPage() {
                         {sizeTableType !== "none" && sizeTable.columns.length > 0 && (
                             <div style={{ background: "white", border: "1px solid var(--color-border)", borderRadius: 16, padding: 24, marginBottom: 24 }}>
                                 <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>
-                                    {sizeTable.label[lang]}
+                                    {lang === "ru" ? (sizeTable as any).label.ru : (sizeTable as any).label.en}
                                 </h3>
                                 <div style={{ overflowX: "auto" }}>
                                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -252,7 +295,7 @@ export default function ProductPage() {
                                 {typeLabel}
                             </span>
                             <span style={{ background: "#f1f5f9", color: "var(--color-muted)", fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 12 }}>
-                                📍 {product.region}
+                                📍 {getRegionLabel(product.region, lang)}
                             </span>
                             {product.verified && (
                                 <span style={{ background: "#fef9c3", color: "#854d0e", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 12 }}>
@@ -263,11 +306,11 @@ export default function ProductPage() {
 
                         {/* Title */}
                         <h1 style={{ fontSize: 24, fontWeight: 900, color: "var(--color-text)", lineHeight: 1.25, marginBottom: 6 }}>
-                            {product.title}
+                            {lang === "ru" ? product.titleRu : product.titleEn}
                         </h1>
                         <div style={{ fontSize: 14, color: "var(--color-muted)", marginBottom: 20 }}>
                             <Link href={`/companies/${product.companyId}`} style={{ color: "var(--color-accent)", fontWeight: 600, textDecoration: "none" }}>
-                                {product.company}
+                                {product.company.name}
                             </Link>
                             {" · "}{categoryLabel}
                         </div>
@@ -357,8 +400,8 @@ export default function ProductPage() {
                                     fontSize: 22, flexShrink: 0,
                                 }}>🏭</div>
                                 <div>
-                                    <div style={{ fontWeight: 700, fontSize: 15 }}>{product.company}</div>
-                                    <div style={{ fontSize: 12, color: "var(--color-muted)" }}>📍 {product.region} · {t.common.country}</div>
+                                    <div style={{ fontWeight: 700, fontSize: 15 }}>{product.company.name}</div>
+                                    <div style={{ fontSize: 12, color: "var(--color-muted)" }}>📍 {getRegionLabel(product.region, lang)} · {t.common.country}</div>
                                     {product.verified && (
                                         <div style={{ fontSize: 11, color: "#854d0e", marginTop: 2 }}>✓ {pt.verified}</div>
                                     )}
@@ -380,18 +423,18 @@ export default function ProductPage() {
                         <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 24 }}>{pt.otherProducts}</h2>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
                             {related.map(p => {
-                                const tc = typeColors[p.type];
+                                const tc = typeColors[p.type] || typeColors.instock;
                                 const tl = p.type === "instock" ? pt.inStock : p.type === "whitelabel" ? pt.whiteLabel : pt.rfq;
                                 return (
                                     <Link key={p.id} href={`/products/${p.id}`} style={{ textDecoration: "none" }}>
                                         <div className="card" style={{ overflow: "hidden", cursor: "pointer" }}>
-                                            <div style={{ height: 140, background: "linear-gradient(135deg, #f0f6ff, #e8f4ff)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, position: "relative" }}>
-                                                🧵
+                                            <div style={{ height: 140, background: "white", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
+                                                {p.image ? <img src={p.image} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 48 }}>🧵</span>}
                                                 <span style={{ position: "absolute", top: 8, left: 8, background: tc.bg, color: tc.text, fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10, textTransform: "uppercase" }}>{tl}</span>
                                             </div>
                                             <div style={{ padding: "12px 14px" }}>
-                                                <div style={{ fontSize: 11, color: "var(--color-muted)", textTransform: "uppercase", marginBottom: 4 }}>{p.company}</div>
-                                                <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, lineHeight: 1.3 }}>{p.title}</h3>
+                                                <div style={{ fontSize: 11, color: "var(--color-muted)", textTransform: "uppercase", marginBottom: 4 }}>{p.company.name}</div>
+                                                <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, lineHeight: 1.3 }}>{lang === "ru" ? (p as any).titleRu : (p as any).titleEn}</h3>
                                                 <div style={{ fontSize: 15, fontWeight: 800, color: "var(--color-primary)" }}>
                                                     {p.priceCurrency}{p.priceFrom.toFixed(2)} – {p.priceCurrency}{p.priceTo.toFixed(2)}
                                                 </div>

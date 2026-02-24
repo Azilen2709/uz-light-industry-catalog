@@ -24,7 +24,9 @@ export async function GET(request: Request) {
                     OR: [
                         { name: { contains: search, mode: "insensitive" } },
                         { descriptionRu: { contains: search, mode: "insensitive" } },
+                        { descriptionEn: { contains: search, mode: "insensitive" } },
                         { specializationRu: { contains: search, mode: "insensitive" } },
+                        { specializationEn: { contains: search, mode: "insensitive" } },
                     ],
                 }),
             },

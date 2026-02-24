@@ -29,6 +29,13 @@ enum RfqStatus {
   CANCELLED
 }
 
+enum RfqResponseStatus {
+  NEW
+  VIEWED
+  ACCEPTED
+  REJECTED
+}
+
 // ─── Models ────────────────────────────────────────────────────────────────
 
 model User {
@@ -98,9 +105,13 @@ model Company {
 
 model Product {
   id            Int         @id @default(autoincrement())
-  title         String
-  categorySlug  String
-  industrySlug  String
+  titleRu         String      @default("")
+  titleEn         String      @default("")
+  descriptionRu   String      @default("")
+  descriptionEn   String      @default("")
+  industrySlug    String
+  categorySlug    String
+  subCategorySlug String      @default("")
   region        String
   moq           String
   priceFrom     Float
@@ -145,6 +156,7 @@ model RfqResponse {
   id       String @id @default(cuid())
   price    String
   comment  String?
+  status   RfqResponseStatus @default(NEW)
 
   rfqId String
   rfq   RfqRequest @relation(fields: [rfqId], references: [id], onDelete: Cascade)
@@ -154,6 +166,7 @@ model RfqResponse {
 
   createdAt DateTime @default(now())
 }
+
 
 model Message {
   id     String   @id @default(cuid())

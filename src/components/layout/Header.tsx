@@ -28,7 +28,7 @@ export default function Header() {
         .header-nav-link:hover { color: white; background: rgba(255,255,255,0.1); }
         .lang-btn {
           padding: 4px 8px;
-          border-radius: var(--radius-xl);
+          border-radius: var(--radius-sm);
           font-size: 12px;
           font-weight: 600;
           cursor: pointer;
@@ -62,7 +62,7 @@ export default function Header() {
                     <div style={{
                         width: 38, height: 38,
                         background: "linear-gradient(135deg, var(--color-accent), #60a5fa)",
-                        borderRadius: "var(--radius-xl)", /* Pill shape for logo mark */
+                        borderRadius: "var(--radius-md)", /* Soft square mark */
                         display: "flex", alignItems: "center", justifyContent: "center",
                         fontSize: 18, flexShrink: 0,
                         boxShadow: "0 2px 10px rgba(59, 130, 246, 0.4)",
@@ -87,7 +87,7 @@ export default function Header() {
                             width: "100%",
                             background: "rgba(255,255,255,0.06)",
                             border: "1px solid rgba(255,255,255,0.1)",
-                            borderRadius: "var(--radius-xl)", /* Pill shaped search */
+                            borderRadius: "var(--radius-md)", /* Professional search box */
                             padding: "10px 16px 10px 42px",
                             fontSize: 14,
                             color: "white",
@@ -150,7 +150,7 @@ export default function Header() {
                     <Link href="/auth/register" className="btn btn-primary"
                     >{n.register}</Link>
                 </div>
-            </div>
-        </header>
+            </div >
+        </header >
     );
 }

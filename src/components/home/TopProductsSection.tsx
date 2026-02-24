@@ -5,11 +5,16 @@ import { useT } from "@/contexts/LanguageContext";
 import { PRODUCTS } from "@/lib/data";
 
 const topProductIds = [1, 4, 7, 10]; // Sample IDs from generated data
-const displayProducts = PRODUCTS.filter(p => topProductIds.includes(p.id));
 
-export default function TopProductsSection() {
+interface TopProductsSectionProps {
+    initialProducts?: any[];
+}
+
+export default function TopProductsSection({ initialProducts }: TopProductsSectionProps) {
     const { t, lang } = useT();
     const tp = t.topProducts;
+
+    const displayProducts = initialProducts ?? PRODUCTS.filter(p => topProductIds.includes(p.id));
 
     return (
         <section className="section" style={{ background: "var(--color-bg)" }}>

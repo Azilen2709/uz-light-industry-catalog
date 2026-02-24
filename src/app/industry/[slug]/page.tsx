@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useT } from "@/contexts/LanguageContext";
 import { INDUSTRY_TAXONOMY } from "@/lib/taxonomy";
 import { PRODUCTS, COMPANIES } from "@/lib/data";
@@ -12,23 +12,48 @@ interface Props {
 }
 
 export default function IndustryPage({ params }: Props) {
-    const { lang } = useT();
+    const { lang, t } = useT();
     const industry = INDUSTRY_TAXONOMY.find(i => i.slug === params.slug);
+
+    const [activeSubcat, setActiveSubcat] = useState<string | null>(null);
+    const [products, setProducts] = useState<any[]>([]);
+    const [companies, setCompanies] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!industry) return;
+        setLoading(true);
+        Promise.all([
+            fetch(`/api/products?industry=${industry.slug}`).then(res => res.json()),
+            fetch(`/api/companies?industry=${industry.slug}`).then(res => res.json())
+        ]).then(([prodData, compData]) => {
+            if (Array.isArray(prodData)) setProducts(prodData);
+            if (Array.isArray(compData)) setCompanies(compData);
+            setLoading(false);
+        }).catch(err => {
+            console.error("Fetch industry data error:", err);
+            setLoading(false);
+        });
+    }, [industry]);
 
     if (!industry) notFound();
 
-    const [activeSubcat, setActiveSubcat] = useState<string | null>(null);
+    if (loading) {
+        return (
+            <div style={{ textAlign: "center", padding: "100px 24px" }}>
+                <div className="spinner" style={{ margin: "0 auto 20px" }} />
+                <p style={{ color: "var(--color-muted)" }}>{t.common.loading}...</p>
+            </div>
+        );
+    }
 
-    // Products in this industry
-    const allProducts = PRODUCTS.filter(p => p.industrySlug === industry.slug);
+    // Products filtering (client-side for subcategories)
     const filtered = activeSubcat
-        ? allProducts.filter(p => p.categorySlug === activeSubcat || p.tags.includes(activeSubcat))
-        : allProducts;
+        ? products.filter(p => p.categorySlug === activeSubcat || p.tags?.includes(activeSubcat))
+        : products;
 
     // Companies in this industry
-    const relatedCompanies = COMPANIES.filter(c =>
-        c.industrySlugs?.includes(industry.slug)
-    ).slice(0, 4);
+    const relatedCompanies = companies.slice(0, 4);
 
     const L = {
         ru: {
@@ -96,7 +121,7 @@ export default function IndustryPage({ params }: Props) {
                             </h1>
                             <div style={{ display: "flex", gap: 12 }}>
                                 <span style={{ background: "rgba(255,255,255,0.2)", color: "white", fontSize: 13, fontWeight: 700, borderRadius: 20, padding: "4px 12px", backdropFilter: "blur(4px)" }}>
-                                    {allProducts.length} {L.products}
+                                    {products.length} {L.products}
                                 </span>
                                 <span style={{ background: "rgba(255,255,255,0.2)", color: "white", fontSize: 13, fontWeight: 700, borderRadius: 20, padding: "4px 12px", backdropFilter: "blur(4px)" }}>
                                     {relatedCompanies.length}+ {lang === "ru" ? "фабрик" : "factories"}
@@ -145,10 +170,10 @@ export default function IndustryPage({ params }: Props) {
                                 transition: "all 0.15s", whiteSpace: "nowrap",
                             }}
                         >
-                            {L.all} ({allProducts.length})
+                            {L.all} ({products.length})
                         </button>
                         {industry.subcategories.map(sub => {
-                            const count = PRODUCTS.filter(p => p.industrySlug === industry.slug && (p.categorySlug === sub.slug || p.tags.includes(sub.slug))).length;
+                            const count = products.filter(p => p.categorySlug === sub.slug || p.tags?.includes(sub.slug)).length;
                             const isActive = activeSubcat === sub.slug;
                             return (
                                 <button
@@ -201,7 +226,7 @@ export default function IndustryPage({ params }: Props) {
                         </div>
                     ) : (
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
-                            {filtered.map(p => <ProductCard key={p.id} product={p} view="grid" />)}
+                            {filtered.map(p => <ProductCard key={p.id} product={p} view="grid" lang={lang} />)}
                         </div>
                     )}
                 </div>

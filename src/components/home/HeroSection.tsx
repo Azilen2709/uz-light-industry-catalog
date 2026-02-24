@@ -44,12 +44,7 @@ export default function HeroSection() {
         `,
                 pointerEvents: "none",
             }} />
-            <div style={{
-                position: "absolute", top: -80, right: -80,
-                width: 400, height: 400,
-                background: "rgba(59,130,246,0.05)",
-                borderRadius: "50%",
-            }} />
+            {/* Removed the large decorative circle that looked like an oval on the background */}
 
             <div className="container" style={{ position: "relative" }}>
                 {/* Badge */}
@@ -87,7 +82,7 @@ export default function HeroSection() {
                         {/* Search */}
                         <div style={{
                             display: "flex", gap: 0, maxWidth: 520,
-                            background: "white", borderRadius: "100px", overflow: "hidden", /* Pill shape */
+                            background: "white", borderRadius: "var(--radius-md)", overflow: "hidden", /* Modern rounded rectangle */
                             boxShadow: "0 10px 25px -5px rgba(0,0,0,0.2), 0 8px 10px -6px rgba(0,0,0,0.1)", marginBottom: 24,
                             border: "1px solid rgba(255,255,255,0.1)",
                         }}>
@@ -160,7 +155,7 @@ export default function HeroSection() {
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                                         <span style={{ fontWeight: 600, color: "white", fontSize: 15 }}>{card.title}</span>
-                                        <span style={{ fontSize: 10, fontWeight: 700, color: "white", background: card.badgeColor, padding: "2px 8px", borderRadius: "100px", letterSpacing: "0.02em" }}>{card.badge}</span>
+                                        <span style={{ fontSize: 10, fontWeight: 700, color: "white", background: card.badgeColor, padding: "2px 8px", borderRadius: "4px", letterSpacing: "0.02em" }}>{card.badge}</span>
                                     </div>
                                     <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", margin: 0 }}>{card.desc}</p>
                                 </div>

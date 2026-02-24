@@ -69,9 +69,17 @@ export interface Category {
     industrySlug: string; // which top-level industry this belongs to
 }
 
+export interface District {
+    id: string; // The code from egov
+    ru: string;
+    en: string;
+}
+
 /** Bilingual region record */
 export interface Region {
+    id?: string; // The code from egov
     slug: string;
     ru: string;
     en: string;
+    districts?: District[];
 }

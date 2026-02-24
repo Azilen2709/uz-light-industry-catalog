@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useT } from "@/contexts/LanguageContext";
-import { COMPANIES, PRODUCTS } from "@/lib/data";
-import type { ProductType } from "@/lib/data/types";
+import { ProductType, getRegionLabel } from "@/lib/data";
+import { Company, Product } from "@prisma/client";
 
 // ─── Static Config ────────────────────────────────────────────────────────
 
@@ -82,9 +82,25 @@ export default function CompanyPage() {
     const params = useParams();
     const { t, lang } = useT();
     const [activeTab, setActiveTab] = useState<ProductType | "all">("all");
+    const [company, setCompany] = useState<(Company & { products: Product[] }) | null>(null);
+    const [loading, setLoading] = useState(true);
 
     const companyId = parseInt(params.id as string, 10);
-    const company = COMPANIES.find(c => c.id === companyId);
+
+    useEffect(() => {
+        if (!companyId) return;
+        setLoading(true);
+        fetch(`/api/companies/${companyId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (!data.error) setCompany(data);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error("Fetch company error:", err);
+                setLoading(false);
+            });
+    }, [companyId]);
 
     const L = {
         ru: {
@@ -123,6 +139,15 @@ export default function CompanyPage() {
         },
     }[lang];
 
+    if (loading) {
+        return (
+            <div style={{ textAlign: "center", padding: "100px 24px" }}>
+                <div className="spinner" style={{ margin: "0 auto 20px" }} />
+                <p style={{ color: "var(--color-muted)" }}>{t.common.loading}...</p>
+            </div>
+        );
+    }
+
     if (!company) {
         return (
             <div style={{ textAlign: "center", padding: "100px 24px" }}>
@@ -133,7 +158,7 @@ export default function CompanyPage() {
         );
     }
 
-    const allProducts = PRODUCTS.filter(p => p.companyId === company.id);
+    const allProducts = company.products || [];
     const filteredProducts = activeTab === "all" ? allProducts : allProducts.filter(p => p.type === activeTab);
     const capacity = productionCapacity[company.id] ?? [];
     const reviews = mockReviews[company.id] ?? [];
@@ -184,8 +209,8 @@ export default function CompanyPage() {
                             display: "flex", alignItems: "center", justifyContent: "center",
                             overflow: "hidden"
                         }}>
-                            {company.logo ? (
-                                <img src={company.logo} alt={company.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            {(company as any).logo ? (
+                                <img src={(company as any).logo} alt={company.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                             ) : (
                                 <span style={{ fontSize: 48 }}>🏭</span>
                             )}
@@ -208,11 +233,11 @@ export default function CompanyPage() {
                                 {company.name}
                             </h1>
                             <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 15, marginBottom: 14, maxWidth: 560 }}>
-                                {company.description[lang]}
+                                {lang === "ru" ? company.descriptionRu : company.descriptionEn}
                             </p>
                             <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
                                 {[
-                                    { label: "📍", value: `${company.region}, ${company.country}` },
+                                    { label: "📍", value: `${getRegionLabel(company.region, lang)}, ${company.country}` },
                                     { label: L.founded, value: String(company.founded) },
                                     { label: L.employees, value: company.employees },
                                     { label: L.moq, value: company.moqFrom },
@@ -243,10 +268,10 @@ export default function CompanyPage() {
                     <div className="container" style={{ padding: "0 24px" }}>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", textAlign: "center" }}>
                             {[
-                                { value: company.stats.ordersCompleted.toLocaleString(), label: L.ordersCompleted },
-                                { value: `${company.stats.repeatClients}%`, label: L.repeatClients },
-                                { value: `${company.stats.onTimeDelivery}%`, label: L.onTime },
-                                { value: `${company.stats.avgResponseHours}${L.hours}`, label: L.response },
+                                { value: company.ordersCompleted?.toLocaleString() || "0", label: L.ordersCompleted },
+                                { value: `${company.repeatClients || 0}%`, label: L.repeatClients },
+                                { value: `${company.onTimeDelivery || 0}%`, label: L.onTime },
+                                { value: `${company.avgResponseHours || 0}${L.hours}`, label: L.response },
                             ].map(stat => (
                                 <div key={stat.label} style={{ padding: "14px 0", borderRight: "1px solid rgba(255,255,255,0.08)" }}>
                                     <div style={{ fontSize: 22, fontWeight: 900, color: "#5eb8ff" }}>{stat.value}</div>
@@ -266,7 +291,7 @@ export default function CompanyPage() {
                     <div style={{ background: "white", border: "1px solid var(--color-border)", borderRadius: 16, padding: 24, marginBottom: 20 }}>
                         <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 14 }}>🏭 {L.about}</h2>
                         <p style={{ fontSize: 15, lineHeight: 1.75, color: "var(--color-text-secondary)" }}>
-                            {company.about[lang]}
+                            {lang === "ru" ? company.aboutRu : company.aboutEn}
                         </p>
                     </div>
 
@@ -275,7 +300,7 @@ export default function CompanyPage() {
                         <div style={{ background: "white", border: "1px solid var(--color-border)", borderRadius: 16, padding: 24, marginBottom: 20 }}>
                             <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 16 }}>⚙️ {L.production}</h2>
                             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
-                                {capacity.map((item, i) => (
+                                {capacity.map((item: any, i) => (
                                     <div key={i} style={{
                                         display: "flex", alignItems: "flex-start", gap: 10,
                                         background: "var(--color-surface)", borderRadius: 12,
@@ -285,7 +310,7 @@ export default function CompanyPage() {
                                             {["📊", "🏗️", "🕐", "🧪", "🔬", "🎯"][i % 6]}
                                         </span>
                                         <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)", lineHeight: 1.4 }}>
-                                            {item[lang]}
+                                            {lang === "ru" ? item.ru : item.en}
                                         </span>
                                     </div>
                                 ))}
@@ -297,7 +322,7 @@ export default function CompanyPage() {
                     <div style={{ background: "white", border: "1px solid var(--color-border)", borderRadius: 16, padding: 24, marginBottom: 20 }}>
                         <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 14 }}>🎯 {L.specialization}</h2>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
-                            {company.specialization[lang].split(", ").map(s => (
+                            {((company as any).specializationRu || "").split(", ").filter(Boolean).map((s: any) => (
                                 <span key={s} style={{
                                     background: "var(--color-surface)", border: "1px solid var(--color-border-strong)",
                                     borderRadius: 20, padding: "6px 14px", fontSize: 13, fontWeight: 600,
@@ -408,7 +433,7 @@ export default function CompanyPage() {
                             ) : (
                                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
                                     {filteredProducts.map((p: any) => {
-                                        const fc = flowColors[p.type];
+                                        const fc = flowColors[p.type as ProductType] || flowColors.instock;
                                         return (
                                             <Link key={p.id} href={`/products/${p.id}`} style={{ textDecoration: "none" }}>
                                                 <div className="card" style={{ overflow: "hidden", cursor: "pointer", transition: "transform 0.15s, box-shadow 0.15s" }}
@@ -416,7 +441,7 @@ export default function CompanyPage() {
                                                     onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ""; (e.currentTarget as HTMLDivElement).style.boxShadow = ""; }}>
                                                     <div style={{ height: 110, background: "white", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
                                                         {p.image ? (
-                                                            <img src={p.image} alt={p.title[lang]} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                                            <img src={p.image} alt={lang === "ru" ? p.titleRu : p.titleEn} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                                         ) : (
                                                             <span style={{ fontSize: 40 }}>🧵</span>
                                                         )}
@@ -431,7 +456,7 @@ export default function CompanyPage() {
                                                     </div>
                                                     <div style={{ padding: "10px 12px" }}>
                                                         <div style={{ fontSize: 10, color: "var(--color-muted)", marginBottom: 2, textTransform: "uppercase" }}>{p.category}</div>
-                                                        <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, lineHeight: 1.3 }}>{p.title}</h4>
+                                                        <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, lineHeight: 1.3 }}>{lang === "ru" ? p.titleRu : p.titleEn}</h4>
                                                         <div style={{ fontSize: 13, fontWeight: 800, color: "var(--color-primary)" }}>
                                                             {p.priceCurrency}{p.priceFrom.toFixed(2)} – {p.priceCurrency}{p.priceTo.toFixed(2)}
                                                         </div>
@@ -510,24 +535,24 @@ export default function CompanyPage() {
 
                         <div style={{ padding: 16 }}>
                             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                                {company.contacts.telegram && (
-                                    <a href={`https://t.me/${company.contacts.telegram.replace("@", "")}`} target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, textDecoration: "none", background: "#e8f4fd", color: "#0088cc", fontWeight: 700, fontSize: 14 }}>
-                                        <span style={{ fontSize: 20 }}>✈️</span> Telegram · {company.contacts.telegram}
+                                {company.telegram && (
+                                    <a href={`https://t.me/${company.telegram.replace("@", "")}`} target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, textDecoration: "none", background: "#e8f4fd", color: "#0088cc", fontWeight: 700, fontSize: 14 }}>
+                                        <span style={{ fontSize: 20 }}>✈️</span> Telegram · {company.telegram}
                                     </a>
                                 )}
-                                {company.contacts.whatsapp && (
-                                    <a href={`https://wa.me/${company.contacts.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, textDecoration: "none", background: "#e8f8f0", color: "#128c7e", fontWeight: 700, fontSize: 14 }}>
+                                {company.whatsapp && (
+                                    <a href={`https://wa.me/${company.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, textDecoration: "none", background: "#e8f8f0", color: "#128c7e", fontWeight: 700, fontSize: 14 }}>
                                         <span style={{ fontSize: 20 }}>💬</span> WhatsApp
                                     </a>
                                 )}
-                                {company.contacts.email && (
-                                    <a href={`mailto:${company.contacts.email}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, textDecoration: "none", background: "#fef3f2", color: "#c0392b", fontWeight: 700, fontSize: 14 }}>
-                                        <span style={{ fontSize: 20 }}>📧</span> {company.contacts.email}
+                                {company.email && (
+                                    <a href={`mailto:${company.email}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, textDecoration: "none", background: "#fef3f2", color: "#c0392b", fontWeight: 700, fontSize: 14 }}>
+                                        <span style={{ fontSize: 20 }}>📧</span> {company.email}
                                     </a>
                                 )}
-                                {company.contacts.website && (
-                                    <a href={`https://${company.contacts.website}`} target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, textDecoration: "none", background: "var(--color-surface)", color: "var(--color-text-secondary)", fontWeight: 600, fontSize: 14 }}>
-                                        <span style={{ fontSize: 20 }}>🌐</span> {company.contacts.website}
+                                {company.website && (
+                                    <a href={`https://${company.website}`} target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, textDecoration: "none", background: "var(--color-surface)", color: "var(--color-text-secondary)", fontWeight: 600, fontSize: 14 }}>
+                                        <span style={{ fontSize: 20 }}>🌐</span> {company.website}
                                     </a>
                                 )}
                             </div>

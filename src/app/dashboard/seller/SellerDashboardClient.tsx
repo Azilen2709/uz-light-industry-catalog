@@ -244,7 +244,7 @@ export default function SellerDashboardClient({ company, myProducts }: SellerDas
                                             <td style={tableCell}>
                                                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                                     <div style={{ width: 36, height: 36, borderRadius: 8, background: "linear-gradient(135deg, #f0f6ff, #e8efff)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🧵</div>
-                                                    <span style={{ fontWeight: 700 }}>{p.title}</span>
+                                                    <span style={{ fontWeight: 700 }}>{lang === "ru" ? p.titleRu : p.titleEn}</span>
                                                 </div>
                                             </td>
                                             <td style={tableCell}>

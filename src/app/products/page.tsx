@@ -20,13 +20,15 @@ function ProductsContent() {
 
     // Read URL params on mount
     const initialCategory = searchParams.get("category") ?? "";
+    const initialSubcategory = searchParams.get("subcategory") ?? "";
     const initialType = (searchParams.get("type") ?? "") as ProductType | "";
     const initialIndustry = searchParams.get("industry") ?? "";
     const initialSearch = searchParams.get("q") ?? "";
 
     const [filters, setFilters] = useState<FilterState>({
         ...DEFAULT_FILTERS,
-        categories: initialCategory ? [initialCategory] : [],
+        categorySlugs: initialCategory ? [initialCategory] : [],
+        subcategorySlugs: initialSubcategory ? [initialSubcategory] : [],
         types: initialType && ["instock", "whitelabel", "rfq"].includes(initialType)
             ? [initialType as ProductType]
             : [],
@@ -43,7 +45,8 @@ function ProductsContent() {
         setLoading(true);
         const params = new URLSearchParams();
         if (search) params.set("search", search);
-        if (filters.categories.length === 1) params.set("category", filters.categories[0]);
+        if (filters.categorySlugs.length === 1) params.set("category", filters.categorySlugs[0]);
+        if (filters.subcategorySlugs.length === 1) params.set("subcategory", filters.subcategorySlugs[0]);
         if (filters.types.length === 1) params.set("type", filters.types[0]);
         if (filters.industrySlug) params.set("industry", filters.industrySlug);
         if (filters.regions.length > 0) params.set("region", filters.regions[0]);
@@ -58,18 +61,19 @@ function ProductsContent() {
                 console.error("Failed to fetch products:", err);
                 setLoading(false);
             });
-    }, [search, filters.categories, filters.types, filters.industrySlug, filters.regions]);
+    }, [search, filters.categorySlugs, filters.subcategorySlugs, filters.types, filters.industrySlug, filters.regions]);
 
     // Sync URL when filters change
     useEffect(() => {
         const params = new URLSearchParams();
         if (search) params.set("q", search);
-        if (filters.categories.length === 1) params.set("category", filters.categories[0]);
+        if (filters.categorySlugs.length === 1) params.set("category", filters.categorySlugs[0]);
+        if (filters.subcategorySlugs.length === 1) params.set("subcategory", filters.subcategorySlugs[0]);
         if (filters.types.length === 1) params.set("type", filters.types[0]);
         if (filters.industrySlug) params.set("industry", filters.industrySlug);
         const qs = params.toString();
         router.replace(qs ? `/products?${qs}` : "/products", { scroll: false });
-    }, [search, filters.categories, filters.types, filters.industrySlug]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [search, filters.categorySlugs, filters.subcategorySlugs, filters.types, filters.industrySlug]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const filtered = useMemo(() => {
         let result = [...products];
@@ -78,7 +82,8 @@ function ProductsContent() {
         if (search.trim()) {
             const q = search.toLowerCase();
             result = result.filter(p =>
-                p.title.toLowerCase().includes(q) ||
+                p.titleRu.toLowerCase().includes(q) ||
+                p.titleEn.toLowerCase().includes(q) ||
                 (p.company?.name || "").toLowerCase().includes(q) ||
                 p.tags.some(tag => tag.toLowerCase().includes(q))
             );
@@ -89,17 +94,14 @@ function ProductsContent() {
             result = result.filter(p => p.industrySlug === filters.industrySlug);
         }
 
-        // Subcategory filter (within selected industry)
-        if (filters.subcategorySlugs.length > 0) {
-            result = result.filter(p =>
-                filters.subcategorySlugs.includes(p.categorySlug) ||
-                filters.subcategorySlugs.some(slug => p.tags.includes(slug))
-            );
+        // Category filter (Level 2)
+        if (filters.categorySlugs.length > 0) {
+            result = result.filter(p => filters.categorySlugs.includes(p.categorySlug));
         }
 
-        // Legacy flat category filter
-        if (filters.categories.length > 0) {
-            result = result.filter(p => filters.categories.includes(p.categorySlug));
+        // Subcategory filter (Level 3)
+        if (filters.subcategorySlugs.length > 0) {
+            result = result.filter(p => filters.subcategorySlugs.includes((p as any).subCategorySlug));
         }
 
         // Type filter
@@ -145,7 +147,7 @@ function ProductsContent() {
                         {products.length}+ {L.subtitle}
                     </p>
                     {/* Search */}
-                    <div style={{ display: "flex", background: "white", borderRadius: "var(--radius-xl)", overflow: "hidden", maxWidth: 640, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.2)" }}>
+                    <div style={{ display: "flex", background: "white", borderRadius: "var(--radius-md)", overflow: "hidden", maxWidth: 640, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.2)" }}>
                         <span style={{ padding: "0 16px 0 20px", display: "flex", alignItems: "center", fontSize: 18, color: "var(--color-text-secondary)" }}>🔍</span>
                         <input
                             type="text"
@@ -199,7 +201,7 @@ function ProductsContent() {
                     </div>
 
                     {/* Active Filter Tags */}
-                    {(filters.industrySlug || filters.subcategorySlugs.length > 0 || filters.types.length > 0 || filters.categories.length > 0 || filters.regions.length > 0 || filters.verifiedOnly) && (
+                    {(filters.industrySlug || filters.subcategorySlugs.length > 0 || filters.types.length > 0 || filters.categorySlugs.length > 0 || filters.regions.length > 0 || filters.verifiedOnly) && (
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
                             {filters.verifiedOnly && (
                                 <span style={tagStyle} onClick={() => setFilters(f => ({ ...f, verifiedOnly: false }))}>
@@ -221,8 +223,8 @@ function ProductsContent() {
                                     {type === "instock" ? "In-Stock" : type === "whitelabel" ? "White Label" : "RFQ"} ✕
                                 </span>
                             ))}
-                            {filters.categories.map(c => (
-                                <span key={c} style={tagStyle} onClick={() => setFilters(f => ({ ...f, categories: f.categories.filter(x => x !== c) }))}>
+                            {filters.categorySlugs.map(c => (
+                                <span key={c} style={tagStyle} onClick={() => setFilters(f => ({ ...f, categorySlugs: f.categorySlugs.filter(x => x !== c) }))}>
                                     {c} ✕
                                 </span>
                             ))}
@@ -248,11 +250,11 @@ function ProductsContent() {
                         </div>
                     ) : view === "grid" ? (
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
-                            {filtered.map(p => <ProductCard key={p.id} product={p} view="grid" />)}
+                            {filtered.map(p => <ProductCard key={p.id} product={p} view="grid" lang={lang} />)}
                         </div>
                     ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                            {filtered.map(p => <ProductCard key={p.id} product={p} view="list" />)}
+                            {filtered.map(p => <ProductCard key={p.id} product={p} view="list" lang={lang} />)}
                         </div>
                     )}
                 </main>
@@ -264,7 +266,7 @@ function ProductsContent() {
 const tagStyle: React.CSSProperties = {
     background: "var(--color-surface)",
     border: "1px solid var(--color-border)",
-    borderRadius: "var(--radius-xl)", /* Pill shaped tags */
+    borderRadius: "var(--radius-md)", /* Less rounded tags */
     padding: "6px 14px",
     fontSize: 13,
     fontWeight: 600,

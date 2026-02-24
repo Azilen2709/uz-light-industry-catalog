@@ -5,11 +5,16 @@ import { useT } from "@/contexts/LanguageContext";
 import { COMPANIES } from "@/lib/data";
 
 const topCompanyIds = [1, 2, 6, 3]; // Sample IDs from generated data
-const displayFactories = COMPANIES.filter(f => topCompanyIds.includes(f.id));
 
-export default function TopFactoriesSection() {
+interface TopFactoriesSectionProps {
+    initialCompanies?: any[];
+}
+
+export default function TopFactoriesSection({ initialCompanies }: TopFactoriesSectionProps) {
     const { t, lang } = useT();
     const tf = t.topFactories;
+
+    const displayFactories = initialCompanies ?? COMPANIES.filter(f => topCompanyIds.includes(f.id));
 
     return (
         <section className="section" style={{ background: "var(--color-surface)", borderTop: "1px solid var(--color-border-light)" }}>

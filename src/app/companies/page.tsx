@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useT } from "@/contexts/LanguageContext";
-import { CATEGORIES, REGIONS, ProductType } from "@/lib/data";
+import { CATEGORIES, REGIONS, ProductType, getRegionLabel } from "@/lib/data";
 import { Company } from "@prisma/client";
 
 type SortCompany = "rating" | "orders" | "newest" | "ontime";
@@ -145,7 +145,7 @@ export default function CompaniesPage() {
                         {companies.length}+ {L.subtitle}
                     </p>
                     {/* Search */}
-                    <div style={{ display: "flex", background: "white", borderRadius: 12, overflow: "hidden", maxWidth: 560, boxShadow: "0 4px 24px rgba(0,0,0,0.2)" }}>
+                    <div style={{ display: "flex", background: "white", borderRadius: "12px", overflow: "hidden", maxWidth: 560, boxShadow: "0 4px 24px rgba(0,0,0,0.2)" }}>
                         <span style={{ padding: "0 14px", display: "flex", alignItems: "center", fontSize: 18 }}>🏭</span>
                         <input
                             type="text" value={search}
@@ -220,9 +220,9 @@ export default function CompaniesPage() {
                         <div className="fs" style={{ marginBottom: 0 }}>
                             <div className="ft">{L.regionLabel}</div>
                             {REGIONS.map(r => (
-                                <button key={r} className={`fc ${regions.includes(r) ? "on" : ""}`} onClick={() => setRegions(toggle(regions, r))}>
-                                    <div className={`cb ${regions.includes(r) ? "on" : ""}`}>{regions.includes(r) && <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" /></svg>}</div>
-                                    {r}
+                                <button key={r.slug} className={`fc ${regions.includes(r.ru) ? "on" : ""}`} onClick={() => setRegions(toggle(regions, r.ru))}>
+                                    <div className={`cb ${regions.includes(r.ru) ? "on" : ""}`}>{regions.includes(r.ru) && <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" /></svg>}</div>
+                                    {r[lang]}
                                 </button>
                             ))}
                         </div>
@@ -266,15 +266,19 @@ export default function CompaniesPage() {
                         </div>
                     ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                            {filtered.map(c => (
+                            {filtered.map((c: any) => (
                                 <div key={c.id} className="card" style={{ padding: 0, overflow: "hidden" }}>
                                     <div style={{ display: "flex", gap: 0 }}>
                                         {/* Accent strip */}
                                         <div style={{ width: 5, background: c.verified ? "var(--color-accent)" : "var(--color-border-strong)", flexShrink: 0 }} />
 
-                                        {/* Avatar */}
-                                        <div style={{ width: 90, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#f0f6ff,#e8f4ff)", borderRight: "1px solid var(--color-border)" }}>
-                                            <div style={{ fontSize: 38 }}>🏭</div>
+                                        {/* Avatar / Logo */}
+                                        <div style={{ width: 90, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "white", borderRight: "1px solid var(--color-border)", overflow: "hidden" }}>
+                                            {c.logo ? (
+                                                <img src={c.logo} alt={c.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                            ) : (
+                                                <div style={{ fontSize: 38 }}>🏭</div>
+                                            )}
                                         </div>
 
                                         {/* Main info */}
@@ -286,7 +290,7 @@ export default function CompaniesPage() {
                                                         {c.verified && (
                                                             <span style={{ background: "#fef9c3", color: "#854d0e", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10 }}>✓ {L.verified}</span>
                                                         )}
-                                                        {c.flows.map(f => (
+                                                        {c.flows.map((f: string) => (
                                                             <span key={f} style={{ background: flowColors[f].bg, color: flowColors[f].text, fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10, textTransform: "uppercase" }}>
                                                                 {flowLabels[f][lang]}
                                                             </span>
@@ -296,7 +300,7 @@ export default function CompaniesPage() {
                                                     {/* Name */}
                                                     <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--color-text)", marginBottom: 3 }}>{c.name}</h2>
                                                     <div style={{ fontSize: 13, color: "var(--color-muted)", marginBottom: 8 }}>
-                                                        📍 {c.region} · {L.founded} {c.founded} · {L.employees}: {c.employees}
+                                                        📍 {getRegionLabel(c.region, lang)} · {L.founded} {c.founded} · {L.employees}: {c.employees}
                                                     </div>
 
                                                     {/* Description */}
@@ -363,7 +367,7 @@ export default function CompaniesPage() {
 const tagStyle: React.CSSProperties = {
     background: "var(--color-surface)",
     border: "1px solid var(--color-border-strong)",
-    borderRadius: 20, padding: "4px 12px",
+    borderRadius: "var(--radius-md)", padding: "4px 12px",
     fontSize: 12, fontWeight: 600,
     color: "var(--color-text-secondary)",
     cursor: "pointer",

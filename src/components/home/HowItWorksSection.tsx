@@ -71,7 +71,7 @@ export default function HowItWorksSection() {
         .hiw-cta {
           display: inline-block;
           padding: 12px 24px;
-          border-radius: var(--radius-xl); /* Pill shape CTA */
+          border-radius: var(--radius-md); /* Professional rounded button */
           color: white;
           font-weight: 700;
           font-size: 14px;

@@ -2,13 +2,18 @@
 import { useT } from "@/contexts/LanguageContext";
 import { PRODUCTS, COMPANIES } from "@/lib/data";
 
-export default function StatsSection() {
+interface StatsSectionProps {
+    companiesCount?: number;
+    productsCount?: number;
+}
+
+export default function StatsSection({ companiesCount, productsCount }: StatsSectionProps) {
     const { t } = useT();
     const s = t.stats;
 
     const stats = [
-        { value: COMPANIES.length.toString(), label: s.factories, icon: "🏭" },
-        { value: PRODUCTS.length.toString(), label: s.products, icon: "👕" },
+        { value: (companiesCount ?? COMPANIES.length).toString(), label: s.factories, icon: "🏭" },
+        { value: (productsCount ?? PRODUCTS.length).toString(), label: s.products, icon: "👕" },
         { value: "2", label: s.languages, icon: "🌍" },
         { value: "3", label: s.flows, icon: "⚡" },
     ];

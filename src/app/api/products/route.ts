@@ -8,6 +8,7 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url);
         const type = searchParams.get("type");
         const category = searchParams.get("category");
+        const subcategory = searchParams.get("subcategory");
         const industry = searchParams.get("industry");
         const region = searchParams.get("region");
         const search = searchParams.get("search");
@@ -19,6 +20,7 @@ export async function GET(request: Request) {
             where: {
                 ...(type && { type: type as "instock" | "whitelabel" | "rfq" }),
                 ...(category && { categorySlug: category }),
+                ...(subcategory && { subCategorySlug: subcategory }),
                 ...(industry && { industrySlug: industry }),
                 ...(region && { region }),
                 ...(companyId && { companyId: parseInt(companyId) }),
@@ -26,7 +28,8 @@ export async function GET(request: Request) {
                 ...(maxPrice && { priceTo: { lte: parseFloat(maxPrice) } }),
                 ...(search && {
                     OR: [
-                        { title: { contains: search, mode: "insensitive" } },
+                        { titleRu: { contains: search, mode: "insensitive" } },
+                        { titleEn: { contains: search, mode: "insensitive" } },
                         { tags: { has: search } },
                     ],
                 }),

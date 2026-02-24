@@ -1,14 +1,14 @@
 "use client";
 import { useState } from "react";
 import { useT } from "@/contexts/LanguageContext";
-import { CATEGORIES, REGIONS, ProductType } from "@/lib/data";
-import { INDUSTRY_TAXONOMY } from "@/lib/taxonomy";
+import { REGIONS, ProductType } from "@/lib/data";
+import { INDUSTRY_TAXONOMY, Category } from "@/lib/taxonomy";
 
 // FilterState is exported so both this component and the page share one definition
 export interface FilterState {
     industrySlug: string;       // top-level direction from taxonomy, "" = all
-    subcategorySlugs: string[]; // subcategory slugs within selected industry
-    categories: string[];       // flat legacy category slugs
+    categorySlugs: string[];    // level 2 (categories)
+    subcategorySlugs: string[]; // level 3 (subcategories)
     types: ProductType[];
     regions: string[];
     priceMax: number;
@@ -17,8 +17,8 @@ export interface FilterState {
 
 export const DEFAULT_FILTERS: FilterState = {
     industrySlug: "",
+    categorySlugs: [],
     subcategorySlugs: [],
-    categories: [],
     types: [],
     regions: [],
     priceMax: 999,
@@ -36,15 +36,33 @@ export default function CatalogFilters({ filters, onChange }: CatalogFiltersProp
     const [expandedIndustry, setExpandedIndustry] = useState<string | null>(
         filters.industrySlug || null
     );
+    const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
     function selectIndustry(slug: string) {
         const isDeselecting = filters.industrySlug === slug;
         setExpandedIndustry(isDeselecting ? null : slug);
+        setExpandedCategory(null);
         onChange({
             ...filters,
             industrySlug: isDeselecting ? "" : slug,
+            categorySlugs: [],
             subcategorySlugs: [],
         });
+    }
+
+    function toggleCategory(slug: string) {
+        const next = filters.categorySlugs.includes(slug)
+            ? filters.categorySlugs.filter(s => s !== slug)
+            : [...filters.categorySlugs, slug];
+
+        // If expanding/collapsing local state
+        if (expandedCategory === slug) {
+            setExpandedCategory(null);
+        } else {
+            setExpandedCategory(slug);
+        }
+
+        onChange({ ...filters, categorySlugs: next });
     }
 
     function toggleSubcategory(slug: string) {
@@ -76,13 +94,11 @@ export default function CatalogFilters({ filters, onChange }: CatalogFiltersProp
 
     const activeCount =
         (filters.industrySlug ? 1 : 0) +
+        filters.categorySlugs.length +
         filters.subcategorySlugs.length +
-        filters.categories.length +
         filters.types.length +
         filters.regions.length +
         (filters.verifiedOnly ? 1 : 0);
-
-    const selectedIndustry = INDUSTRY_TAXONOMY.find(i => i.slug === expandedIndustry);
 
     return (
         <aside style={{ width: 268, flexShrink: 0 }}>
@@ -116,28 +132,39 @@ export default function CatalogFilters({ filters, onChange }: CatalogFiltersProp
         }
         .industry-btn {
           display: flex; align-items: center; justify-content: space-between;
-          width: 100%; padding: 10px 14px; border-radius: var(--radius-xl); /* Pill shaped */
+          width: 100%; padding: 10px 14px; border-radius: var(--radius-md);
           border: 1.5px solid var(--color-border); cursor: pointer;
           font-size: 13px; font-weight: 600; text-align: left;
           background: white; margin-bottom: 6px; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .industry-btn:hover { border-color: var(--color-primary); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
         .industry-btn.selected { border-color: var(--color-primary); background: #f0f6ff; color: var(--color-primary); box-shadow: inset 0 0 0 1px var(--color-primary); }
-        .subcat-btn {
-          display: flex; align-items: center; gap: 10px;
-          width: 100%; padding: 6px 10px 6px 24px; border-radius: 10px;
+        .cat-btn {
+          display: flex; align-items: center; justify-content: space-between;
+          width: 100%; padding: 6px 10px 6px 14px; border-radius: 10px;
           border: none; cursor: pointer; font-size: 13px; background: transparent;
           text-align: left; color: var(--color-text-secondary); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           margin-bottom: 2px;
         }
+        .cat-btn:hover { background: var(--color-bg); color: var(--color-text); }
+        .cat-btn.active { color: var(--color-primary); font-weight: 700; background: var(--color-bg); }
+        
+        .subcat-btn {
+          display: flex; align-items: center; gap: 8px;
+          width: 100%; padding: 5px 10px 5px 32px; border-radius: 8px;
+          border: none; cursor: pointer; font-size: 12px; background: transparent;
+          text-align: left; color: var(--color-text-secondary); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          margin-bottom: 2px;
+        }
         .subcat-btn:hover { background: var(--color-bg); color: var(--color-text); }
-        .subcat-btn.active { color: var(--color-primary); font-weight: 700; background: var(--color-bg); }
+        .subcat-btn.active { color: var(--color-primary); font-weight: 600; background: var(--color-bg); }
       `}</style>
 
             <div style={{
                 background: "white", border: "1px solid var(--color-border)",
-                borderRadius: "var(--radius-xl)", padding: "24px 20px", position: "sticky", top: 90,
-                boxShadow: "var(--shadow-card)"
+                borderRadius: "var(--radius-lg)", padding: "26px 20px", position: "sticky", top: 90,
+                boxShadow: "var(--shadow-card)",
+                transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
             }}>
                 {/* Header */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
@@ -150,13 +177,13 @@ export default function CatalogFilters({ filters, onChange }: CatalogFiltersProp
                         )}
                     </span>
                     {activeCount > 0 && (
-                        <button onClick={() => { setExpandedIndustry(null); onChange(DEFAULT_FILTERS); }} style={{ fontSize: 12, color: "var(--color-accent)", fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}>
+                        <button onClick={() => { setExpandedIndustry(null); setExpandedCategory(null); onChange(DEFAULT_FILTERS); }} style={{ fontSize: 12, color: "var(--color-accent)", fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}>
                             {L.reset}
                         </button>
                     )}
                 </div>
 
-                {/* ── Taxonomy: Industry Directions ── */}
+                {/* ── Taxonomy: 3-Level ── */}
                 <div className="filter-section">
                     <div className="filter-title">
                         🗂 {lang === "ru" ? "Направление" : "Direction"}
@@ -166,6 +193,7 @@ export default function CatalogFilters({ filters, onChange }: CatalogFiltersProp
                         const isExpanded = expandedIndustry === industry.slug;
                         return (
                             <div key={industry.slug}>
+                                {/* LEVEL 1: INDUSTRY */}
                                 <button
                                     className={`industry-btn ${isSelected ? "selected" : ""}`}
                                     onClick={() => selectIndustry(industry.slug)}
@@ -178,19 +206,46 @@ export default function CatalogFilters({ filters, onChange }: CatalogFiltersProp
                                     <span style={{ fontSize: 11, color: isSelected ? industry.color : "var(--color-muted)", transition: "transform 0.2s", display: "inline-block", transform: isExpanded ? "rotate(180deg)" : "rotate(0)" }}>▾</span>
                                 </button>
 
-                                {/* Subcategories accordion */}
+                                {/* LEVEL 2: CATEGORY */}
                                 {isExpanded && (
                                     <div style={{ marginBottom: 6 }}>
-                                        {industry.subcategories.map(sub => {
-                                            const isSubActive = filters.subcategorySlugs.includes(sub.slug);
+                                        {industry.categories.map((cat: Category) => {
+                                            const isCatActive = filters.categorySlugs.includes(cat.slug);
+                                            const isCatExpanded = expandedCategory === cat.slug;
                                             return (
-                                                <button key={sub.slug} className={`subcat-btn ${isSubActive ? "active" : ""}`} onClick={() => toggleSubcategory(sub.slug)}>
-                                                    <div className={`custom-checkbox ${isSubActive ? "checked" : ""}`} style={{ width: 14, height: 14, borderColor: isSubActive ? industry.color : undefined, background: isSubActive ? industry.color : undefined }}>
-                                                        {isSubActive && <svg width="9" height="9" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.8" strokeLinecap="round" fill="none" /></svg>}
+                                                <div key={cat.slug}>
+                                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                                        <div className={`custom-checkbox ${isCatActive ? "checked" : ""}`} style={{ width: 14, height: 14, borderColor: isCatActive ? industry.color : undefined, background: isCatActive ? industry.color : undefined, cursor: "pointer", marginLeft: 4 }} onClick={() => toggleCategory(cat.slug)}>
+                                                            {isCatActive && <svg width="9" height="9" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.8" strokeLinecap="round" fill="none" /></svg>}
+                                                        </div>
+                                                        <button className={`cat-btn ${isCatActive ? "active" : ""}`} onClick={() => setExpandedCategory(isCatExpanded ? null : cat.slug)} style={{ flex: 1 }}>
+                                                            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                                                                <span style={{ fontSize: 14 }}>{cat.icon}</span>
+                                                                <span>{cat.label[lang]}</span>
+                                                            </div>
+                                                            {cat.subcategories.length > 0 && (
+                                                                <span style={{ fontSize: 10, color: "var(--color-muted)", transform: isCatExpanded ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}>▾</span>
+                                                            )}
+                                                        </button>
                                                     </div>
-                                                    <span style={{ fontSize: 14 }}>{sub.icon}</span>
-                                                    <span>{sub.label[lang]}</span>
-                                                </button>
+
+                                                    {/* LEVEL 3: SUBCATEGORY */}
+                                                    {isCatExpanded && cat.subcategories.length > 0 && (
+                                                        <div style={{ marginTop: 2, marginBottom: 4 }}>
+                                                            {cat.subcategories.map(sub => {
+                                                                const isSubActive = filters.subcategorySlugs.includes(sub.slug);
+                                                                return (
+                                                                    <button key={sub.slug} className={`subcat-btn ${isSubActive ? "active" : ""}`} onClick={() => toggleSubcategory(sub.slug)}>
+                                                                        <div className={`custom-checkbox ${isSubActive ? "checked" : ""}`} style={{ width: 12, height: 12, borderRadius: 4, borderColor: isSubActive ? industry.color : undefined, background: isSubActive ? industry.color : undefined }}>
+                                                                            {isSubActive && <svg width="8" height="8" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" /></svg>}
+                                                                        </div>
+                                                                        <span>{sub.icon} {sub.label[lang]}</span>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             );
                                         })}
                                     </div>
@@ -200,44 +255,60 @@ export default function CatalogFilters({ filters, onChange }: CatalogFiltersProp
                     })}
                 </div>
 
-                {/* ── Verified ── */}
-                <div className="filter-section">
-                    <button className={`filter-check ${filters.verifiedOnly ? "active" : ""}`} onClick={() => onChange({ ...filters, verifiedOnly: !filters.verifiedOnly })}>
-                        <div className={`custom-checkbox ${filters.verifiedOnly ? "checked" : ""}`}>
-                            {filters.verifiedOnly && <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" /></svg>}
-                        </div>
-                        <span>{L.verifiedOnly}</span>
-                    </button>
-                </div>
+                <hr style={{ border: "none", borderTop: "1px solid var(--color-border)", margin: "0 0 24px 0" }} />
 
-                {/* ── Type ── */}
+                {/* ── FLOW / TYPE ── */}
                 <div className="filter-section">
-                    <div className="filter-title">{L.typeLabel}</div>
+                    <div className="filter-title">
+                        📦 {lang === "ru" ? "Тип отгрузки" : "Order Type"}
+                    </div>
                     {typeOptions.map(opt => (
                         <button key={opt.value} className={`filter-check ${filters.types.includes(opt.value) ? "active" : ""}`} onClick={() => toggleType(opt.value)}>
-                            <div className={`custom-checkbox ${filters.types.includes(opt.value) ? "checked" : ""}`}
-                                style={{ borderColor: filters.types.includes(opt.value) ? opt.color : undefined, background: filters.types.includes(opt.value) ? opt.color : undefined }}>
-                                {filters.types.includes(opt.value) && <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" /></svg>}
+                            <div className={`custom-checkbox ${filters.types.includes(opt.value) ? "checked" : ""}`}>
+                                {filters.types.includes(opt.value) && <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" /></svg>}
                             </div>
-                            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                <span style={{ width: 7, height: 7, borderRadius: "50%", background: opt.dot, flexShrink: 0 }} />
-                                {opt.label}
-                            </span>
+                            <span style={{ width: 8, height: 8, borderRadius: "50%", background: opt.dot }} />
+                            {opt.label}
                         </button>
                     ))}
                 </div>
 
-                {/* ── Regions ── */}
+                <hr style={{ border: "none", borderTop: "1px solid var(--color-border)", margin: "0 0 24px 0" }} />
+
+                {/* ── REGION ── */}
+                <div className="filter-section">
+                    <div className="filter-title">
+                        📍 {lang === "ru" ? "Регион" : "Region"}
+                    </div>
+                    {REGIONS.map(reg => {
+                        const localLabel = lang === "ru" ? reg.ru : reg.en;
+                        return (
+                            <button key={reg.slug} className={`filter-check ${filters.regions.includes(reg.slug) ? "active" : ""}`} onClick={() => toggleRegion(reg.slug)}>
+                                <div className={`custom-checkbox ${filters.regions.includes(reg.slug) ? "checked" : ""}`}>
+                                    {filters.regions.includes(reg.slug) && <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" /></svg>}
+                                </div>
+                                {localLabel}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* ── TRUST & VERIFICATION ── */}
                 <div className="filter-section" style={{ marginBottom: 0 }}>
-                    <div className="filter-title">{L.regionLabel}</div>
-                    {REGIONS.map(region => (
-                        <button key={region.ru} className={`filter-check ${filters.regions.includes(region.ru) ? "active" : ""}`} onClick={() => toggleRegion(region.ru)}>
-                            <div className={`custom-checkbox ${filters.regions.includes(region.ru) ? "checked" : ""}`}>
-                                {filters.regions.includes(region.ru) && <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" /></svg>}
-                            </div>
-                            {lang === "ru" ? region.ru : region.en}
-                        </button>
-                    ))}
+                    <label className="filter-check" style={{ background: filters.verifiedOnly ? "#fef9c3" : "var(--color-surface)", padding: "12px 14px" }}>
+                        <div className={`custom-checkbox ${filters.verifiedOnly ? "checked" : ""}`} style={{ borderColor: filters.verifiedOnly ? "#ca8a04" : undefined, background: filters.verifiedOnly ? "#ca8a04" : undefined }}>
+                            {filters.verifiedOnly && <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" /></svg>}
+                        </div>
+                        <input
+                            type="checkbox"
+                            checked={filters.verifiedOnly}
+                            onChange={(e) => onChange({ ...filters, verifiedOnly: e.target.checked })}
+                            style={{ display: "none" }}
+                        />
+                        <span style={{ fontWeight: 600, color: filters.verifiedOnly ? "#854d0e" : "inherit" }}>
+                            {lang === "ru" ? "🏆 Только проверенные фабрики" : "🏆 Verified Factories Only"}
+                        </span>
+                    </label>
                 </div>
             </div>
         </aside>

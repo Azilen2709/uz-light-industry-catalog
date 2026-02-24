@@ -7,17 +7,28 @@ export interface SizeTable {
 
 export interface SubCategory {
     slug: string;
+    code: string; // Official code from Reference Catalog (e.g. A1.1.1)
     label: { ru: string; en: string };
     sizeTable: SizeTable["type"];
+    icon?: string;
+}
+
+export interface Category {
+    slug: string;
+    code: string; // Official category code (e.g. A1.1)
+    label: { ru: string; en: string };
     icon: string;
+    subcategories: SubCategory[];
+    sizeTable?: SizeTable["type"]; // Fallback if subcategory missing
 }
 
 export interface IndustryCategory {
     slug: string;
+    code: string; // Official sector code (e.g. A1)
     label: { ru: string; en: string };
     icon: string;
     color: string;
-    subcategories: SubCategory[];
+    categories: Category[];
 }
 
 // ─── Size Tables ──────────────────────────────────────────
@@ -94,302 +105,254 @@ export const SIZE_TABLES = {
     },
 } as const;
 
-// ─── Industry Taxonomy ────────────────────────────────────
+// ─── Industry Taxonomy (3 Levels) ────────────────────────────────────
 
 export const INDUSTRY_TAXONOMY: IndustryCategory[] = [
     {
         slug: "textile",
+        code: "A1",
         label: { ru: "Текстиль", en: "Textile" },
         icon: "🧵",
         color: "#3b82f6",
-        subcategories: [
+        categories: [
             {
-                slug: "outerwear",
-                label: { ru: "Верхняя одежда", en: "Outerwear" },
+                slug: "apparel-men",
+                code: "A1.1",
+                label: { ru: "Мужская одежда", en: "Men's Apparel" },
+                icon: "👔",
                 sizeTable: "clothing",
-                icon: "🧥",
+                subcategories: [
+                    { slug: "outerwear", code: "A1.1.1", label: { ru: "Верхняя одежда", en: "Outerwear" }, sizeTable: "clothing", icon: "🧥" },
+                    { slug: "tops", code: "A1.1.2", label: { ru: "Футболки и поло", en: "T-shirts & Polo" }, sizeTable: "clothing", icon: "👕" },
+                    { slug: "bottoms", code: "A1.1.3", label: { ru: "Брюки и джинсы", en: "Trousers & Jeans" }, sizeTable: "clothing", icon: "👖" },
+                    { slug: "sportswear", code: "A1.1.4", label: { ru: "Спортивная одежда", en: "Sportswear" }, sizeTable: "clothing", icon: "🏃" },
+                    { slug: "workwear", code: "A1.1.5", label: { ru: "Форменная одежда", en: "Workwear" }, sizeTable: "clothing", icon: "👷" },
+                    { slug: "knitwear", code: "A1.1.6", label: { ru: "Трикотаж", en: "Knitwear" }, sizeTable: "clothing", icon: "🧶" },
+                ],
             },
             {
-                slug: "sportswear",
-                label: { ru: "Спортивная одежда", en: "Sportswear" },
-                sizeTable: "clothing",
-                icon: "🏃",
-            },
-            {
-                slug: "knitwear",
-                label: { ru: "Трикотаж", en: "Knitwear" },
-                sizeTable: "clothing",
-                icon: "🧶",
-            },
-            {
-                slug: "dresses",
-                label: { ru: "Платья и юбки", en: "Dresses & Skirts" },
-                sizeTable: "clothing",
+                slug: "apparel-women",
+                code: "A1.1",
+                label: { ru: "Женская одежда", en: "Women's Apparel" },
                 icon: "👗",
-            },
-            {
-                slug: "children-wear",
-                label: { ru: "Детская одежда", en: "Children's Wear" },
                 sizeTable: "clothing",
-                icon: "👶",
+                subcategories: [
+                    { slug: "dresses", code: "A1.1.1", label: { ru: "Платья и юбки", en: "Dresses & Skirts" }, sizeTable: "clothing", icon: "👗" },
+                    { slug: "tops-women", code: "A1.1.2", label: { ru: "Блузки и футболки", en: "Blouses & T-shirts" }, sizeTable: "clothing", icon: "👚" },
+                    { slug: "outerwear-women", code: "A1.1.3", label: { ru: "Верхняя одежда", en: "Outerwear" }, sizeTable: "clothing", icon: "🧥" },
+                ]
             },
             {
                 slug: "home-textile",
+                code: "A1.2",
                 label: { ru: "Домашний текстиль", en: "Home Textile" },
-                sizeTable: "none",
                 icon: "🛏",
-            },
-            {
-                slug: "workwear",
-                label: { ru: "Форменная одежда", en: "Workwear" },
-                sizeTable: "clothing",
-                icon: "👷",
-            },
-            {
-                slug: "accessories",
-                label: { ru: "Аксессуары и галантерея", en: "Accessories" },
                 sizeTable: "none",
-                icon: "👜",
-            },
+                subcategories: [
+                    { slug: "bedding", code: "A1.2.1", label: { ru: "Постельное белье", en: "Bedding Sets" }, sizeTable: "none" },
+                    { slug: "towels", code: "A1.2.2", label: { ru: "Полотенца", en: "Towels" }, sizeTable: "none" },
+                    { slug: "curtains", code: "A1.2.3", label: { ru: "Шторы", en: "Curtains" }, sizeTable: "none" },
+                ],
+            }
         ],
     },
     {
         slug: "silk",
+        code: "A2",
         label: { ru: "Шёлк", en: "Silk" },
         icon: "🌸",
         color: "#ec4899",
-        subcategories: [
+        categories: [
             {
-                slug: "natural-silk",
-                label: { ru: "Натуральный шёлк", en: "Natural Silk" },
-                sizeTable: "fabric",
+                slug: "silk-fabric",
+                code: "A2.1",
+                label: { ru: "Шёлковые ткани", en: "Silk Fabrics" },
                 icon: "🧣",
+                sizeTable: "fabric",
+                subcategories: [],
             },
             {
-                slug: "silk-dresses",
-                label: { ru: "Шёлковые платья и блузы", en: "Silk Dresses & Blouses" },
-                sizeTable: "clothing",
+                slug: "silk-apparel",
+                code: "A2.2",
+                label: { ru: "Одежда из шёлка", en: "Silk Apparel" },
                 icon: "👘",
+                sizeTable: "clothing",
+                subcategories: [],
             },
             {
-                slug: "satin-fabric",
-                label: { ru: "Атласная ткань", en: "Satin Fabric" },
-                sizeTable: "fabric",
-                icon: "✨",
-            },
-            {
-                slug: "silk-scarves",
-                label: { ru: "Шарфы и платки", en: "Scarves & Shawls" },
-                sizeTable: "none",
+                slug: "silk-accessories",
+                code: "A2.3",
+                label: { ru: "Шёлковые аксессуары", en: "Silk Accessories" },
                 icon: "🧣",
-            },
-            {
-                slug: "ikat",
-                label: { ru: "Икат и адрас (нац. ткани)", en: "Ikat & Adras (Traditional)" },
-                sizeTable: "fabric",
-                icon: "🎨",
+                sizeTable: "none",
+                subcategories: [],
             },
         ],
     },
     {
         slug: "leather",
-        label: { ru: "Кожа", en: "Leather" },
+        code: "A3",
+        label: { ru: "Кожаные изделия", en: "Leather Goods" },
         icon: "🟤",
         color: "#92400e",
-        subcategories: [
-            {
-                slug: "leather-goods",
-                label: { ru: "Кожаные изделия", en: "Leather Goods" },
-                sizeTable: "none",
-                icon: "👛",
-            },
+        categories: [
             {
                 slug: "leather-bags",
-                label: { ru: "Сумки и кошельки", en: "Bags & Wallets" },
-                sizeTable: "none",
+                code: "A3.1",
+                label: { ru: "Сумки и рюкзаки", en: "Bags & Backpacks" },
                 icon: "👜",
-            },
-            {
-                slug: "leather-jackets",
-                label: { ru: "Куртки и верхняя одежда", en: "Jackets & Outerwear" },
-                sizeTable: "clothing",
-                icon: "🧥",
-            },
-            {
-                slug: "belts-accessories",
-                label: { ru: "Ремни и аксессуары", en: "Belts & Accessories" },
                 sizeTable: "none",
-                icon: "👞",
+                subcategories: [],
             },
             {
-                slug: "raw-leather",
-                label: { ru: "Сырьё — кожевенное полуфабрикат", en: "Raw Leather Material" },
-                sizeTable: "fabric",
-                icon: "🪵",
+                slug: "leather-accessories",
+                code: "A3.2",
+                label: { ru: "Мелкая галантерея", en: "Small Leather Goods" },
+                icon: "👛",
+                sizeTable: "none",
+                subcategories: [],
+            },
+            {
+                slug: "leather-belts",
+                code: "A3.3",
+                label: { ru: "Ремни", en: "Belts" },
+                icon: "👞",
+                sizeTable: "none",
+                subcategories: [],
             },
         ],
     },
     {
         slug: "footwear",
+        code: "A4",
         label: { ru: "Обувь", en: "Footwear" },
         icon: "👠",
         color: "#7c3aed",
-        subcategories: [
+        categories: [
             {
-                slug: "mens-footwear",
-                label: { ru: "Мужская обувь", en: "Men's Footwear" },
-                sizeTable: "footwear",
+                slug: "shoes-classic",
+                code: "A4.1",
+                label: { ru: "Классическая обувь", en: "Classic Footwear" },
                 icon: "👞",
+                sizeTable: "footwear",
+                subcategories: [],
             },
             {
-                slug: "womens-footwear",
-                label: { ru: "Женская обувь", en: "Women's Footwear" },
-                sizeTable: "footwear",
-                icon: "👠",
-            },
-            {
-                slug: "children-footwear",
-                label: { ru: "Детская обувь", en: "Children's Footwear" },
-                sizeTable: "footwear",
+                slug: "shoes-casual",
+                code: "A4.2",
+                label: { ru: "Повседневная обувь", en: "Casual Footwear" },
                 icon: "👟",
+                sizeTable: "footwear",
+                subcategories: [],
             },
             {
-                slug: "sports-footwear",
-                label: { ru: "Спортивная обувь", en: "Sports Footwear" },
-                sizeTable: "footwear",
+                slug: "shoes-sport",
+                code: "A4.3",
+                label: { ru: "Спортивная обувь", en: "Sport Footwear" },
                 icon: "🥾",
+                sizeTable: "footwear",
+                subcategories: [],
             },
             {
-                slug: "national-footwear",
-                label: { ru: "Национальная обувь (Махси)", en: "National Footwear (Makhsi)" },
+                slug: "shoes-special",
+                code: "A4.5",
+                label: { ru: "Спецобувь", en: "Specialized Footwear" },
+                icon: "🩺",
                 sizeTable: "footwear",
-                icon: "🥿",
+                subcategories: [],
             },
         ],
     },
     {
         slug: "carpets",
+        code: "A5",
         label: { ru: "Ковры", en: "Carpets" },
         icon: "🔴",
         color: "#dc2626",
-        subcategories: [
+        categories: [
             {
-                slug: "handmade-carpets",
-                label: { ru: "Ковры ручной работы", en: "Handmade Carpets" },
+                slug: "home-carpets",
+                code: "A5.1",
+                label: { ru: "Ковры для дома", en: "Home Carpets" },
+                icon: "🏡",
                 sizeTable: "carpet",
-                icon: "🧵",
+                subcategories: [
+                    { slug: "handmade-carpets", code: "A5.1.4", label: { ru: "Ковры ручной работы", en: "Handmade Carpets" }, sizeTable: "carpet", icon: "✨" },
+                    { slug: "machine-carpets", code: "A5.1.5", label: { ru: "Ковры машинной работы", en: "Machine Carpets" }, sizeTable: "carpet", icon: "🏭" },
+                ],
             },
             {
-                slug: "machine-carpets",
-                label: { ru: "Машинные ковры", en: "Machine-Made Carpets" },
+                slug: "contract-carpets",
+                code: "A5.2",
+                label: { ru: "Контрактные ковры (Отели/Офисы)", en: "Contract Carpets (Hotel/Office)" },
+                icon: "🏢",
                 sizeTable: "carpet",
-                icon: "⚙️",
-            },
-            {
-                slug: "silk-carpets",
-                label: { ru: "Шёлковые ковры", en: "Silk Carpets" },
-                sizeTable: "carpet",
-                icon: "✨",
-            },
-            {
-                slug: "carpet-runners",
-                label: { ru: "Дорожки и мини-ковры", en: "Runners & Small Rugs" },
-                sizeTable: "carpet",
-                icon: "📏",
-            },
-            {
-                slug: "national-carpet",
-                label: { ru: "Нац. орнамент (Бухара, Самарканд)", en: "National Ornament (Bukhara, Samarkand)" },
-                sizeTable: "carpet",
-                icon: "🎨",
+                subcategories: [],
             },
         ],
     },
 ];
 
-// ─── Category → Size Table Mapping ───────────────────────────────────────
-// Maps BOTH flat CATEGORIES slugs (from lib/data/categories.ts)
-// AND taxonomy subcategory slugs to their size table type.
-// This is the single authoritative lookup — use getSizeTableType() everywhere.
+// ─── Size Table Mapping (Dynamic from Tree) ────────────────────────────────
 
-export const CATEGORY_SIZE_TABLE_MAP: Record<string, SizeTable["type"]> = {
-    // ── Flat CATEGORIES slugs (used as Product.categorySlug) ──
-    "outerwear": "clothing",
-    "dresses": "clothing",
-    "footwear": "footwear",
-    "home-textile": "none",
-    "knitwear": "clothing",
-    "accessories": "none",
-    "carpets": "carpet",
-    "workwear": "clothing",
-
-    // ── Taxonomy subcategory slugs (Textile) ──
-    "sportswear": "clothing",
-    "children-wear": "clothing",
-
-    // ── Taxonomy subcategory slugs (Silk) ──
-    "natural-silk": "fabric",
-    "silk-dresses": "clothing",
-    "satin-fabric": "fabric",
-    "silk-scarves": "none",
-    "ikat": "fabric",
-
-    // ── Taxonomy subcategory slugs (Leather) ──
-    "leather-goods": "none",
-    "leather-bags": "none",
-    "leather-jackets": "clothing",
-    "belts-accessories": "none",
-    "raw-leather": "fabric",
-
-    // ── Taxonomy subcategory slugs (Footwear) ──
-    "mens-footwear": "footwear",
-    "womens-footwear": "footwear",
-    "children-footwear": "footwear",
-    "sports-footwear": "footwear",
-    "national-footwear": "footwear",
-
-    // ── Taxonomy subcategory slugs (Carpets) ──
-    "handmade-carpets": "carpet",
-    "machine-carpets": "carpet",
-    "silk-carpets": "carpet",
-    "carpet-runners": "carpet",
-    "national-carpet": "carpet",
-};
+export function getSizeTableType(slug: string): SizeTable["type"] {
+    for (const ind of INDUSTRY_TAXONOMY) {
+        for (const cat of ind.categories) {
+            if (cat.slug === slug) return cat.sizeTable || "none";
+            for (const sub of cat.subcategories) {
+                if (sub.slug === slug) return sub.sizeTable;
+            }
+        }
+    }
+    return "none";
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
-// Primary function: resolve size table type from ANY slug
-export function getSizeTableType(slug: string): SizeTable["type"] {
-    return CATEGORY_SIZE_TABLE_MAP[slug] ?? "none";
+export function getAllCategorySlugs(): string[] {
+    return INDUSTRY_TAXONOMY.flatMap(ind => ind.categories.map(c => c.slug));
 }
 
-// Get all subcategory slugs flat
 export function getAllSubcategorySlugs(): string[] {
-    return INDUSTRY_TAXONOMY.flatMap(ind => ind.subcategories.map(s => s.slug));
+    return INDUSTRY_TAXONOMY.flatMap(ind => ind.categories.flatMap(c => c.subcategories.map(s => s.slug)));
 }
 
-// Find subcategory by slug (within taxonomy)
-export function findSubcategory(slug: string): SubCategory | undefined {
+export function findCategory(slug: string): Category | undefined {
     for (const ind of INDUSTRY_TAXONOMY) {
-        const sub = ind.subcategories.find(s => s.slug === slug);
-        if (sub) return sub;
+        const cat = ind.categories.find(c => c.slug === slug);
+        if (cat) return cat;
     }
     return undefined;
 }
 
-// Find parent industry by subcategory slug
-export function findIndustry(subcategorySlug: string): IndustryCategory | undefined {
-    return INDUSTRY_TAXONOMY.find(ind =>
-        ind.subcategories.some(s => s.slug === subcategorySlug)
-    );
+export function findSubcategory(slug: string): SubCategory | undefined {
+    for (const ind of INDUSTRY_TAXONOMY) {
+        for (const cat of ind.categories) {
+            const sub = cat.subcategories.find(s => s.slug === slug);
+            if (sub) return sub;
+        }
+    }
+    return undefined;
 }
 
-// Find parent industry by flat category slug (via CATEGORY_SIZE_TABLE_MAP)
-export function findIndustryByCategory(categorySlug: string): IndustryCategory | undefined {
-    // First try direct match in subcategories
-    const bySubcat = findIndustry(categorySlug);
-    if (bySubcat) return bySubcat;
-    // Then try matching flat slug against industry-level slugs
-    return INDUSTRY_TAXONOMY.find(ind => ind.slug === categorySlug);
+export function findIndustry(slugOrChildSlug: string): IndustryCategory | undefined {
+    // 1. match exactly industry
+    const ind = INDUSTRY_TAXONOMY.find(i => i.slug === slugOrChildSlug);
+    if (ind) return ind;
+
+    // 2. match child (category)
+    const indByCat = INDUSTRY_TAXONOMY.find(i => i.categories.some(c => c.slug === slugOrChildSlug));
+    if (indByCat) return indByCat;
+
+    // 3. match grandchild (subcategory)
+    return INDUSTRY_TAXONOMY.find(i => i.categories.some(c => c.subcategories.some(s => s.slug === slugOrChildSlug)));
 }
 
+export function findCategoryBySubcategory(subcategorySlug: string): Category | undefined {
+    for (const ind of INDUSTRY_TAXONOMY) {
+        for (const cat of ind.categories) {
+            if (cat.subcategories.some(s => s.slug === subcategorySlug)) return cat;
+        }
+    }
+    return undefined;
+}

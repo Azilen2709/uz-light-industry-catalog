@@ -1,174 +1,26 @@
 import type { Category } from "./types";
 
-export const CATEGORIES: Category[] = [
-    {
-        "slug": "outerwear",
-        "label": "Верхняя одежда",
-        "labelEn": "Outerwear",
-        "industrySlug": "textile"
-    },
-    {
-        "slug": "sportswear",
-        "label": "Спортивная одежда",
-        "labelEn": "Sportswear",
-        "industrySlug": "textile"
-    },
-    {
-        "slug": "knitwear",
-        "label": "Трикотаж",
-        "labelEn": "Knitwear",
-        "industrySlug": "textile"
-    },
-    {
-        "slug": "dresses",
-        "label": "Платья и юбки",
-        "labelEn": "Dresses & Skirts",
-        "industrySlug": "textile"
-    },
-    {
-        "slug": "children-wear",
-        "label": "Детская одежда",
-        "labelEn": "Children's Wear",
-        "industrySlug": "textile"
-    },
-    {
-        "slug": "home-textile",
-        "label": "Домашний текстиль",
-        "labelEn": "Home Textile",
-        "industrySlug": "textile"
-    },
-    {
-        "slug": "workwear",
-        "label": "Форменная одежда",
-        "labelEn": "Workwear",
-        "industrySlug": "textile"
-    },
-    {
-        "slug": "accessories",
-        "label": "Аксессуары и галантерея",
-        "labelEn": "Accessories",
-        "industrySlug": "textile"
-    },
-    {
-        "slug": "natural-silk",
-        "label": "Натуральный шёлк",
-        "labelEn": "Natural Silk",
-        "industrySlug": "silk"
-    },
-    {
-        "slug": "silk-dresses",
-        "label": "Шёлковые платья и блузы",
-        "labelEn": "Silk Dresses & Blouses",
-        "industrySlug": "silk"
-    },
-    {
-        "slug": "satin-fabric",
-        "label": "Атласная ткань",
-        "labelEn": "Satin Fabric",
-        "industrySlug": "silk"
-    },
-    {
-        "slug": "silk-scarves",
-        "label": "Шарфы и платки",
-        "labelEn": "Scarves & Shawls",
-        "industrySlug": "silk"
-    },
-    {
-        "slug": "ikat",
-        "label": "Икат и адрас (нац. ткани)",
-        "labelEn": "Ikat & Adras (Traditional)",
-        "industrySlug": "silk"
-    },
-    {
-        "slug": "leather-goods",
-        "label": "Кожаные изделия",
-        "labelEn": "Leather Goods",
-        "industrySlug": "leather"
-    },
-    {
-        "slug": "leather-bags",
-        "label": "Сумки и кошельки",
-        "labelEn": "Bags & Wallets",
-        "industrySlug": "leather"
-    },
-    {
-        "slug": "leather-jackets",
-        "label": "Куртки и верхняя одежда",
-        "labelEn": "Jackets & Outerwear",
-        "industrySlug": "leather"
-    },
-    {
-        "slug": "belts-accessories",
-        "label": "Ремни и аксессуары",
-        "labelEn": "Belts & Accessories",
-        "industrySlug": "leather"
-    },
-    {
-        "slug": "raw-leather",
-        "label": "Сырьё — кожевенное полуфабрикат",
-        "labelEn": "Raw Leather Material",
-        "industrySlug": "leather"
-    },
-    {
-        "slug": "mens-footwear",
-        "label": "Мужская обувь",
-        "labelEn": "Men's Footwear",
-        "industrySlug": "footwear"
-    },
-    {
-        "slug": "womens-footwear",
-        "label": "Женская обувь",
-        "labelEn": "Women's Footwear",
-        "industrySlug": "footwear"
-    },
-    {
-        "slug": "children-footwear",
-        "label": "Детская обувь",
-        "labelEn": "Children's Footwear",
-        "industrySlug": "footwear"
-    },
-    {
-        "slug": "sports-footwear",
-        "label": "Спортивная обувь",
-        "labelEn": "Sports Footwear",
-        "industrySlug": "footwear"
-    },
-    {
-        "slug": "national-footwear",
-        "label": "Национальная обувь (Махси)",
-        "labelEn": "National Footwear (Makhsi)",
-        "industrySlug": "footwear"
-    },
-    {
-        "slug": "handmade-carpets",
-        "label": "Ковры ручной работы",
-        "labelEn": "Handmade Carpets",
-        "industrySlug": "carpets"
-    },
-    {
-        "slug": "machine-carpets",
-        "label": "Машинные ковры",
-        "labelEn": "Machine-Made Carpets",
-        "industrySlug": "carpets"
-    },
-    {
-        "slug": "silk-carpets",
-        "label": "Шёлковые ковры",
-        "labelEn": "Silk Carpets",
-        "industrySlug": "carpets"
-    },
-    {
-        "slug": "carpet-runners",
-        "label": "Дорожки и мини-ковры",
-        "labelEn": "Runners & Small Rugs",
-        "industrySlug": "carpets"
-    },
-    {
-        "slug": "national-carpet",
-        "label": "Нац. орнамент (Бухара, Самарканд)",
-        "labelEn": "National Ornament (Bukhara, Samarkand)",
-        "industrySlug": "carpets"
-    }
+export const CATEGORIES: (Category & { code: string })[] = [
+    { slug: "apparel-men", code: "A1.1", label: "Мужская одежда", labelEn: "Men's Apparel", industrySlug: "textile" },
+    { slug: "apparel-women", code: "A1.1", label: "Женская одежда", labelEn: "Women's Apparel", industrySlug: "textile" },
+    { slug: "outerwear", code: "A1.1.1", label: "Верхняя одежда", labelEn: "Outerwear", industrySlug: "textile" },
+    { slug: "sportswear", code: "A1.1.4", label: "Спортивная одежда", labelEn: "Sportswear", industrySlug: "textile" },
+    { slug: "knitwear", code: "A1.1.6", label: "Трикотаж", labelEn: "Knitwear", industrySlug: "textile" },
+    { slug: "home-textile", code: "A1.2", label: "Домашний текстиль", labelEn: "Home Textile", industrySlug: "textile" },
+    { slug: "workwear", code: "A1.1.5", label: "Форменная одежда", labelEn: "Workwear / Uniforms", industrySlug: "textile" },
+    { slug: "silk-fabric", code: "A2.1", label: "Шёлковые ткани", labelEn: "Silk Fabrics", industrySlug: "silk" },
+    { slug: "silk-apparel", code: "A2.2", label: "Одежда из шёлка", labelEn: "Silk Apparel", industrySlug: "silk" },
+    { slug: "silk-accessories", code: "A2.3", label: "Шёлковые аксессуары", labelEn: "Silk Accessories", industrySlug: "silk" },
+    { slug: "leather-bags", code: "A3.1", label: "Сумки и рюкзаки", labelEn: "Bags & Backpacks", industrySlug: "leather" },
+    { slug: "leather-accessories", code: "A3.2", label: "Мелкая галантерея", labelEn: "Small Leather Goods", industrySlug: "leather" },
+    { slug: "leather-belts", code: "A3.3", label: "Ремни", labelEn: "Belts", industrySlug: "leather" },
+    { slug: "shoes-classic", code: "A4.1", label: "Классическая обувь", labelEn: "Classic Footwear", industrySlug: "footwear" },
+    { slug: "shoes-casual", code: "A4.2", label: "Повседневная обувь", labelEn: "Casual Footwear", industrySlug: "footwear" },
+    { slug: "shoes-sport", code: "A4.3", label: "Спортивная обувь", labelEn: "Sport Footwear", industrySlug: "footwear" },
+    { slug: "shoes-special", code: "A4.5", label: "Спецобувь", labelEn: "Specialized Footwear", industrySlug: "footwear" },
+    { slug: "home-carpets", code: "A5.1", label: "Ковры для дома", labelEn: "Home Carpets", industrySlug: "carpets" },
+    { slug: "contract-carpets", code: "A5.2", label: "Контрактные ковры (Отели/Офисы)", labelEn: "Contract Carpets (Hotel/Office)", industrySlug: "carpets" },
+    { slug: "handmade-carpets", code: "A5.1.4", label: "Ковры ручной работы", labelEn: "Handmade Carpets", industrySlug: "carpets" },
 ];
 
 export function findCategory(slug: string): Category | undefined { return CATEGORIES.find(c => c.slug === slug); }

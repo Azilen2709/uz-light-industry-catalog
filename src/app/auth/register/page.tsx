@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useT } from "@/contexts/LanguageContext";
+import { REGIONS } from "@/lib/data";
 
 type Role = "buyer" | "seller";
 
@@ -12,7 +13,7 @@ export default function RegisterPage() {
     const [role, setRole] = useState<Role>("buyer");
     const [step, setStep] = useState<1 | 2>(1);
     const [loading, setLoading] = useState(false);
-    const [form, setForm] = useState({ name: "", company: "", email: "", phone: "", password: "" });
+    const [form, setForm] = useState({ name: "", company: "", email: "", phone: "", password: "", regionId: "", districtId: "" });
 
     const L = {
         ru: {
@@ -32,6 +33,8 @@ export default function RegisterPage() {
             haveAccount: "Уже есть аккаунт?", login: "Войти",
             terms: "Регистрируясь, вы принимаете",
             termsLink: "Условия использования",
+            region: "Регион", regionPh: "Выберите регион",
+            district: "Район / Город", districtPh: "Выберите район",
         },
         en: {
             title: "Create Account",
@@ -50,6 +53,8 @@ export default function RegisterPage() {
             haveAccount: "Already have an account?", login: "Sign In",
             terms: "By registering you accept the",
             termsLink: "Terms of Service",
+            region: "Region", regionPh: "Select region",
+            district: "District / City", districtPh: "Select district",
         },
     }[lang];
 
@@ -63,8 +68,10 @@ export default function RegisterPage() {
     const inp = {
         width: "100%", padding: "12px 14px", border: "1.5px solid var(--color-border)",
         borderRadius: 10, fontSize: 14, outline: "none", fontFamily: "inherit",
-        boxSizing: "border-box" as const, background: "white",
+        boxSizing: "border-box" as const, background: "white", color: "var(--color-text)",
     };
+
+    const activeRegion = REGIONS.find(r => r.id === form.regionId);
 
     return (
         <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0f3460 0%, #16213e 50%, #0a0a1a 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px" }}>
@@ -138,6 +145,29 @@ export default function RegisterPage() {
                                 <label style={{ fontSize: 12, fontWeight: 700, display: "block", marginBottom: 5 }}>{L.company}</label>
                                 <input type="text" placeholder={L.companyPh} value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} style={inp}
                                     onFocus={e => (e.target.style.borderColor = "var(--color-primary)")} onBlur={e => (e.target.style.borderColor = "var(--color-border)")} />
+                            </div>
+                        </div>
+
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                            <div>
+                                <label style={{ fontSize: 12, fontWeight: 700, display: "block", marginBottom: 5 }}>{L.region} *</label>
+                                <select required value={form.regionId} onChange={e => setForm(f => ({ ...f, regionId: e.target.value, districtId: "" }))} style={inp}
+                                    onFocus={e => (e.target.style.borderColor = "var(--color-primary)")} onBlur={e => (e.target.style.borderColor = "var(--color-border)")}>
+                                    <option value="" disabled>{L.regionPh}</option>
+                                    {REGIONS.map(r => (
+                                        <option key={r.id} value={r.id}>{lang === "ru" ? r.ru : r.en}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label style={{ fontSize: 12, fontWeight: 700, display: "block", marginBottom: 5 }}>{L.district} *</label>
+                                <select required value={form.districtId} onChange={e => setForm(f => ({ ...f, districtId: e.target.value }))} style={inp} disabled={!activeRegion}
+                                    onFocus={e => (e.target.style.borderColor = "var(--color-primary)")} onBlur={e => (e.target.style.borderColor = "var(--color-border)")}>
+                                    <option value="" disabled>{L.districtPh}</option>
+                                    {activeRegion?.districts?.map(d => (
+                                        <option key={d.id} value={d.id}>{lang === "ru" ? d.ru : d.en}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
                         <div style={{ marginBottom: 12 }}>

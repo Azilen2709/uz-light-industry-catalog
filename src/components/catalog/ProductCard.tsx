@@ -7,15 +7,22 @@ const typeConfig = {
     rfq: { label: "RFQ", bg: "#ede9fe", text: "#6d28d9" },
 };
 
-type ProductWithCompany = Product & { company: { name: string, region: string, verified: boolean } };
+type ProductWithCompany = Product & {
+    company?: { name: string, region: string, verified: boolean },
+    title?: any // Support both object and string
+};
 
 interface ProductCardProps {
     product: ProductWithCompany;
     view: "grid" | "list";
+    lang?: "ru" | "en";
 }
 
-export default function ProductCard({ product: p, view }: ProductCardProps) {
+export default function ProductCard({ product: p, view, lang = "ru" }: ProductCardProps) {
     const type = typeConfig[p.type];
+    const displayTitle = typeof p.title === 'object'
+        ? (p.title[lang] || p.title['ru'])
+        : (lang === 'ru' ? ((p as any).titleRu || p.title) : ((p as any).titleEn || p.title || (p as any).titleRu));
 
     if (view === "list") {
         return (
@@ -78,7 +85,7 @@ export default function ProductCard({ product: p, view }: ProductCardProps) {
                                 </span>
                             )}
                         </div>
-                        <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--color-primary)", marginBottom: 6, letterSpacing: "-0.01em" }}>{p.title}</h3>
+                        <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--color-primary)", marginBottom: 6, letterSpacing: "-0.01em" }}>{displayTitle}</h3>
                         <div style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 10, fontWeight: 500 }}>
                             {p.company?.name || p.companyId} <span style={{ color: "var(--color-muted)" }}>·</span> 📍 {p.region}
                         </div>
@@ -175,7 +182,7 @@ export default function ProductCard({ product: p, view }: ProductCardProps) {
                     <div style={{ fontSize: 11, color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.04em", fontWeight: 700, marginBottom: 6 }}>
                         {p.categorySlug}
                     </div>
-                    <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--color-primary)", marginBottom: 6, lineHeight: 1.3, letterSpacing: "-0.01em" }}>{p.title}</h3>
+                    <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--color-primary)", marginBottom: 6, lineHeight: 1.3, letterSpacing: "-0.01em" }}>{displayTitle}</h3>
                     <div style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 12, fontWeight: 500 }}>
                         {p.company?.name || p.companyId} <span style={{ color: "var(--color-muted)" }}>·</span> {p.region}
                     </div>

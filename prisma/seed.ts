@@ -121,7 +121,7 @@ async function main() {
             reviewCount: 54,
             moqFrom: "50 шт",
             leadTime: "15–20 дней",
-            categories: ["outerwear", "dresses"],
+            categories: ["outerwear", "apparel-women"],
             industrySlugs: ["textile"],
             flows: ["whitelabel"] as ProductFlow[],
             exportCountries: ["Россия", "Беларусь", "Чехия"],
@@ -156,7 +156,7 @@ async function main() {
             reviewCount: 207,
             moqFrom: "5 шт",
             leadTime: "30–60 дней",
-            categories: ["carpets"],
+            categories: ["home-carpets", "handmade-carpets"],
             industrySlugs: ["carpets"],
             flows: ["rfq", "instock"] as ProductFlow[],
             exportCountries: ["Германия", "Франция", "Италия", "США", "ОАЭ"],
@@ -187,20 +187,57 @@ async function main() {
         create: {
             email: "seller@demo.uz",
             password: sellerPass,
-            name: "Demo Seller",
+            name: "Demo Seller 1",
             role: "SELLER",
             companyId: company1.id,
         },
     });
-    console.log("✅ Seller created:", seller.email);
+    const seller2 = await prisma.user.upsert({
+        where: { email: "seller2@demo.uz" },
+        update: {},
+        create: {
+            email: "seller2@demo.uz",
+            password: sellerPass,
+            name: "Demo Seller 2",
+            role: "SELLER",
+            companyId: company2.id,
+        },
+    });
+    const seller3 = await prisma.user.upsert({
+        where: { email: "seller3@demo.uz" },
+        update: {},
+        create: {
+            email: "seller3@demo.uz",
+            password: sellerPass,
+            name: "Demo Seller 3",
+            role: "SELLER",
+            companyId: company3.id,
+        },
+    });
+    const seller4 = await prisma.user.upsert({
+        where: { email: "seller4@demo.uz" },
+        update: {},
+        create: {
+            email: "seller4@demo.uz",
+            password: sellerPass,
+            name: "Demo Seller 4",
+            role: "SELLER",
+            companyId: company4.id,
+        },
+    });
+    console.log("✅ Sellers created");
 
     // ─── Products ──────────────────────────────────────────────────────────
     const products = [
         {
             id: 1,
-            title: "Худи базовое оверсайз",
-            categorySlug: "outerwear",
+            titleRu: "Худи базовое оверсайз",
+            titleEn: "Basic Oversized Hoodie",
+            descriptionRu: "Плотный трикотаж (футер 3-х нитка с начесом). Идеально для прохладной погоды. Можно брендировать вышивкой или шелкографией.",
+            descriptionEn: "Thick knitwear (3-thread fleece with fleece lining). Perfect for cool weather. Can be branded with embroidery or silkscreen printing.",
             industrySlug: "textile",
+            categorySlug: "apparel-men",
+            subCategorySlug: "outerwear",
             companyId: company1.id,
             region: "Ташкент",
             moq: "10 коробов (100 шт)",
@@ -216,9 +253,13 @@ async function main() {
         },
         {
             id: 2,
-            title: "Постельный комплект Satin 2-спальный",
-            categorySlug: "home-textile",
+            titleRu: "Постельный комплект Satin 2-спальный",
+            titleEn: "Satin Bedding Set (Double)",
+            descriptionRu: "100% хлопок высшего качества (сатин). Гладкая текстура, долго сохраняет цвет после стирок.",
+            descriptionEn: "100% premium cotton (satin). Smooth texture, retains color long after washing.",
             industrySlug: "textile",
+            categorySlug: "home-textile",
+            subCategorySlug: "",
             companyId: company2.id,
             region: "Фергана",
             moq: "20 комплектов",
@@ -234,9 +275,13 @@ async function main() {
         },
         {
             id: 3,
-            title: "Мужская рубашка Poplin Premium",
-            categorySlug: "outerwear",
+            titleRu: "Мужская рубашка Poplin Premium",
+            titleEn: "Premium Poplin Men's Shirt",
+            descriptionRu: "Классическая кроя, дышащая поплиновая ткань. Идеально для корпоративной формы.",
+            descriptionEn: "Classic fit, breathable poplin fabric. Ideal for corporate uniforms.",
             industrySlug: "textile",
+            categorySlug: "apparel-men",
+            subCategorySlug: "workwear",
             companyId: company3.id,
             region: "Самарканд",
             moq: "50 шт",
@@ -252,9 +297,13 @@ async function main() {
         },
         {
             id: 4,
-            title: "Ковёр ручной работы Bukhara",
-            categorySlug: "carpets",
+            titleRu: "Ковёр ручной работы Bukhara",
+            titleEn: "Bukhara Handmade Carpet",
+            descriptionRu: "Традиционный бухарский орнамент. Отборная шерсть. Плетение 100 узлов на дюйм.",
+            descriptionEn: "Traditional Bukhara ornament. Selected wool. Weaving 100 knots per inch.",
             industrySlug: "carpets",
+            categorySlug: "home-carpets",
+            subCategorySlug: "handmade-carpets",
             companyId: company4.id,
             region: "Бухара",
             moq: "10 шт",
@@ -296,8 +345,19 @@ async function main() {
     console.log("✅ Demo RFQ created");
 
     console.log("\n🎉 Seed complete!");
-    console.log("📧 buyer@demo.uz / demo123 (BUYER)");
-    console.log("📧 seller@demo.uz / demo123 (SELLER → UzTextile Pro)");
+    console.log("Логины пользователей для входа в систему:");
+    console.log("-----------------------------------------");
+    console.log("🛒 ПОКУПАТЕЛЬ:");
+    console.log("   Email: buyer@demo.uz\n   Pass:  demo123\n");
+    console.log("🏭 ФАБРИКА 1 (UzTextile Pro):");
+    console.log("   Email: seller@demo.uz\n   Pass:  demo123\n");
+    console.log("🏭 ФАБРИКА 2 (CottonLand UZ):");
+    console.log("   Email: seller2@demo.uz\n   Pass:  demo123\n");
+    console.log("🏭 ФАБРИКА 3 (StyleFactory):");
+    console.log("   Email: seller3@demo.uz\n   Pass:  demo123\n");
+    console.log("🏭 ФАБРИКА 4 (Bukhara Carpet House):");
+    console.log("   Email: seller4@demo.uz\n   Pass:  demo123\n");
+    console.log("-----------------------------------------");
 }
 
 main()

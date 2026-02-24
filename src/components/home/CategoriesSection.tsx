@@ -14,13 +14,13 @@ import {
 import { PRODUCTS } from "@/lib/data";
 
 const baseCategories = [
-    { Icon: NeonClothingIcon, color: "blue" as const, slug: "outerwear" },
-    { Icon: NeonDressIcon, color: "pink" as const, slug: "dresses" },
-    { Icon: NeonShoeIcon, color: "orange" as const, slug: "footwear" },
+    { Icon: NeonClothingIcon, color: "blue" as const, slug: "apparel-men" },
+    { Icon: NeonDressIcon, color: "pink" as const, slug: "apparel-women" },
+    { Icon: NeonShoeIcon, color: "orange" as const, slug: "shoes-casual" },
     { Icon: NeonBedIcon, color: "cyan" as const, slug: "home-textile" },
     { Icon: NeonKnitwearIcon, color: "purple" as const, slug: "knitwear" },
-    { Icon: NeonAccessoriesIcon, color: "gold" as const, slug: "accessories" },
-    { Icon: NeonCarpetIcon, color: "green" as const, slug: "carpets" },
+    { Icon: NeonAccessoriesIcon, color: "gold" as const, slug: "silk-accessories" },
+    { Icon: NeonCarpetIcon, color: "green" as const, slug: "home-carpets" },
     { Icon: NeonWorkwearIcon, color: "blue" as const, slug: "workwear" },
 ];
 
@@ -28,13 +28,13 @@ export default function CategoriesSection() {
     const { t, lang } = useT();
 
     const labels: Record<string, { ru: string; en: string }> = {
-        outerwear: { ru: "Верхняя одежда", en: "Outerwear" },
-        dresses: { ru: "Платья и юбки", en: "Dresses & Skirts" },
-        footwear: { ru: "Обувь", en: "Footwear" },
+        "apparel-men": { ru: "Мужская одежда", en: "Men's Apparel" },
+        "apparel-women": { ru: "Женская одежда", en: "Women's Apparel" },
+        "shoes-casual": { ru: "Обувь", en: "Footwear" },
         "home-textile": { ru: "Домашний текстиль", en: "Home Textile" },
         knitwear: { ru: "Трикотаж", en: "Knitwear" },
-        accessories: { ru: "Аксессуары", en: "Accessories" },
-        carpets: { ru: "Ковры", en: "Carpets" },
+        "silk-accessories": { ru: "Аксессуары", en: "Accessories" },
+        "home-carpets": { ru: "Ковры", en: "Carpets" },
         workwear: { ru: "Форменная одежда", en: "Workwear" },
     };
 
