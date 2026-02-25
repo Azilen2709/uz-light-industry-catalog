@@ -1,365 +1,416 @@
-// ─── Seed Script ───────────────────────────────────────────────────────────
-// Run with: npx prisma db seed
+// ─── Prisma Seed Script ─────────────────────────────────────────────────────
+// Run: npx tsx prisma/seed.ts
 
-import { PrismaClient, ProductFlow } from "@prisma/client";
-import { Pool } from "pg";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import "dotenv/config";
 
-// Initialize properly to avoid PrismaClientInitializationError in Prisma v7
-const pool = new Pool({ connectionString: process.env.DATABASE_URL || "postgresql://postgres:password@localhost:5432/b2b_portal?schema=public" });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 async function main() {
-    console.log("🌱 Seeding database...");
+    console.log("🌱 Starting seed...");
 
-    // ─── Demo Users ────────────────────────────────────────────────────────
-    const buyerPass = await bcrypt.hash("demo123", 12);
-    const sellerPass = await bcrypt.hash("demo123", 12);
+    // ─── 1. Clean DB ───────────────────────────────────────────────────────
+    await prisma.message.deleteMany();
+    await (prisma as any).order?.deleteMany().catch(() => { });
+    await prisma.rfqResponse.deleteMany();
+    await prisma.rfqRequest.deleteMany();
+    await (prisma as any).searchQuery?.deleteMany().catch(() => { });
+    await (prisma as any).banner?.deleteMany().catch(() => { });
+    await prisma.product.deleteMany();
+    await prisma.company.deleteMany();
+    await prisma.user.deleteMany();
+    console.log("✓ Cleaned existing data");
 
-    const buyer = await prisma.user.upsert({
-        where: { email: "buyer@demo.uz" },
-        update: {},
-        create: {
-            email: "buyer@demo.uz",
-            password: buyerPass,
-            name: "Demo Buyer",
+    // ─── 2. Users ──────────────────────────────────────────────────────────
+    const passwordHash = await bcrypt.hash("password123", 10);
+
+    const admin = await prisma.user.create({
+        data: {
+            name: "Admin",
+            email: "admin@b2b.uz",
+            password: passwordHash,
+            role: "ADMIN",
+        },
+    });
+
+    const buyer1 = await prisma.user.create({
+        data: {
+            name: "Mikhail K.",
+            email: "buyer@b2b.uz",
+            password: passwordHash,
             role: "BUYER",
         },
     });
-    console.log("✅ Buyer created:", buyer.email);
 
-    // ─── Companies ─────────────────────────────────────────────────────────
-    const company1 = await prisma.company.upsert({
-        where: { slug: "uztextile-pro" },
-        update: {},
-        create: {
-            name: "UzTextile Pro",
-            slug: "uztextile-pro",
-            region: "Ташкент",
-            country: "Узбекистан",
-            verified: true,
-            founded: 2015,
-            employees: "120–200",
-            rating: 4.8,
-            reviewCount: 142,
-            moqFrom: "100 шт",
-            leadTime: "2–5 дней",
-            categories: ["outerwear", "knitwear"],
-            industrySlugs: ["textile"],
-            flows: ["instock", "whitelabel"] as ProductFlow[],
-            exportCountries: ["Россия", "Казахстан", "Германия", "Польша"],
-            certifications: ["OEKO-TEX Standard 100", "ISO 9001", "GOTS"],
-            descriptionRu: "UzTextile Pro — ведущий производитель трикотажных изделий в Узбекистане.",
-            descriptionEn: "UzTextile Pro is a leading knitwear manufacturer in Uzbekistan.",
-            aboutRu: "Основана в 2015 году. 14 вязальных линий Shima Seiki, собственный красильный цех.",
-            aboutEn: "Founded in 2015. 14 Shima Seiki knitting lines, in-house dyeing shop.",
-            specializationRu: "Трикотаж, Худи оверсайз, Свитшоты, Базовые футболки",
-            specializationEn: "Knitwear, Oversized Hoodies, Sweatshirts, Basic T-shirts",
-            ordersCompleted: 1847,
-            repeatClients: 78,
-            onTimeDelivery: 96,
-            avgResponseHours: 2,
-            telegram: "@uztextile_pro",
-            whatsapp: "+998901234567",
-            email: "sales@uztextile.uz",
-            website: "uztextile.uz",
-        },
-    });
-
-    const company2 = await prisma.company.upsert({
-        where: { slug: "cottonland-uz" },
-        update: {},
-        create: {
-            name: "CottonLand UZ",
-            slug: "cottonland-uz",
-            region: "Фергана",
-            country: "Узбекистан",
-            verified: true,
-            founded: 2010,
-            employees: "200–400",
-            rating: 4.7,
-            reviewCount: 89,
-            moqFrom: "20 комплектов",
-            leadTime: "3–7 дней",
-            categories: ["home-textile"],
-            industrySlugs: ["textile"],
-            flows: ["instock", "rfq"] as ProductFlow[],
-            exportCountries: ["Россия", "ОАЭ", "Турция", "США"],
-            certifications: ["OEKO-TEX Standard 100", "ISO 14001"],
-            descriptionRu: "CottonLand UZ — один из крупнейших производителей домашнего текстиля в Центральной Азии.",
-            descriptionEn: "CottonLand UZ is one of the largest home textile manufacturers in Central Asia.",
-            aboutRu: "Расположена в Ферганской долине. 6 специализированных линий.",
-            aboutEn: "Located in the Fergana Valley. 6 specialized lines.",
-            specializationRu: "Постельное бельё, Полотенца, Домашний декор",
-            specializationEn: "Bedding Sets, Towels, Home Décor",
-            ordersCompleted: 2340,
-            repeatClients: 82,
-            onTimeDelivery: 94,
-            avgResponseHours: 4,
-            telegram: "@cottonland_uz",
-            whatsapp: "+998907654321",
-            email: "export@cottonland.uz",
-            website: "cottonland.uz",
-        },
-    });
-
-    const company3 = await prisma.company.upsert({
-        where: { slug: "stylefactory" },
-        update: {},
-        create: {
-            name: "StyleFactory",
-            slug: "stylefactory",
-            region: "Самарканд",
-            country: "Узбекистан",
-            verified: true,
-            founded: 2018,
-            employees: "50–120",
-            rating: 4.6,
-            reviewCount: 54,
-            moqFrom: "50 шт",
-            leadTime: "15–20 дней",
-            categories: ["outerwear", "apparel-women"],
-            industrySlugs: ["textile"],
-            flows: ["whitelabel"] as ProductFlow[],
-            exportCountries: ["Россия", "Беларусь", "Чехия"],
-            certifications: ["ISO 9001"],
-            descriptionRu: "StyleFactory — бутиковое производство мужских рубашек и деловой одежды.",
-            descriptionEn: "StyleFactory is a boutique manufacturer of men's shirts and business attire.",
-            aboutRu: "Производим деловую одежду для B2B-клиентов из Европы и СНГ.",
-            aboutEn: "We manufacture business attire for B2B clients from Europe and the CIS.",
-            specializationRu: "Мужские рубашки, Деловые костюмы, White Label пошив",
-            specializationEn: "Men's Shirts, Business Suits, White Label Sewing",
-            ordersCompleted: 412,
-            repeatClients: 91,
-            onTimeDelivery: 89,
-            avgResponseHours: 6,
-            telegram: "@stylefactory_uz",
-            email: "whitelabel@stylefactory.uz",
-        },
-    });
-
-    const company4 = await prisma.company.upsert({
-        where: { slug: "bukhara-carpet-house" },
-        update: {},
-        create: {
-            name: "Bukhara Carpet House",
-            slug: "bukhara-carpet-house",
-            region: "Бухара",
-            country: "Узбекистан",
-            verified: true,
-            founded: 1998,
-            employees: "30–80",
-            rating: 4.9,
-            reviewCount: 207,
-            moqFrom: "5 шт",
-            leadTime: "30–60 дней",
-            categories: ["home-carpets", "handmade-carpets"],
-            industrySlugs: ["carpets"],
-            flows: ["rfq", "instock"] as ProductFlow[],
-            exportCountries: ["Германия", "Франция", "Италия", "США", "ОАЭ"],
-            certifications: ["UNESCO Heritage Craft", "Handmade Certificate"],
-            descriptionRu: "Bukhara Carpet House — мастерская ручной работы с 25-летней историей.",
-            descriptionEn: "Bukhara Carpet House — a handcraft workshop with 25 years of history.",
-            aboutRu: "Потомственные мастера сохраняют традиции бухарского ковроткачества.",
-            aboutEn: "Hereditary craftsmen preserve the traditions of Bukhara carpet weaving.",
-            specializationRu: "Ковры ручной работы, Шерстяные ковры, Бухарский орнамент",
-            specializationEn: "Handmade Carpets, Wool Carpets, Bukhara Ornament",
-            ordersCompleted: 3102,
-            repeatClients: 85,
-            onTimeDelivery: 91,
-            avgResponseHours: 8,
-            telegram: "@bukhara_carpets",
-            whatsapp: "+998903331122",
-            email: "orders@bukharacarpet.uz",
-            website: "bukharacarpet.uz",
-        },
-    });
-
-    console.log("✅ Companies created:", company1.slug, company2.slug, company3.slug, company4.slug);
-
-    // ─── Seller user (linked to company1) ─────────────────────────────────
-    const seller = await prisma.user.upsert({
-        where: { email: "seller@demo.uz" },
-        update: {},
-        create: {
-            email: "seller@demo.uz",
-            password: sellerPass,
-            name: "Demo Seller 1",
-            role: "SELLER",
-            companyId: company1.id,
-        },
-    });
-    const seller2 = await prisma.user.upsert({
-        where: { email: "seller2@demo.uz" },
-        update: {},
-        create: {
-            email: "seller2@demo.uz",
-            password: sellerPass,
-            name: "Demo Seller 2",
-            role: "SELLER",
-            companyId: company2.id,
-        },
-    });
-    const seller3 = await prisma.user.upsert({
-        where: { email: "seller3@demo.uz" },
-        update: {},
-        create: {
-            email: "seller3@demo.uz",
-            password: sellerPass,
-            name: "Demo Seller 3",
-            role: "SELLER",
-            companyId: company3.id,
-        },
-    });
-    const seller4 = await prisma.user.upsert({
-        where: { email: "seller4@demo.uz" },
-        update: {},
-        create: {
-            email: "seller4@demo.uz",
-            password: sellerPass,
-            name: "Demo Seller 4",
-            role: "SELLER",
-            companyId: company4.id,
-        },
-    });
-    console.log("✅ Sellers created");
-
-    // ─── Products ──────────────────────────────────────────────────────────
-    const products = [
-        {
-            id: 1,
-            titleRu: "Худи базовое оверсайз",
-            titleEn: "Basic Oversized Hoodie",
-            descriptionRu: "Плотный трикотаж (футер 3-х нитка с начесом). Идеально для прохладной погоды. Можно брендировать вышивкой или шелкографией.",
-            descriptionEn: "Thick knitwear (3-thread fleece with fleece lining). Perfect for cool weather. Can be branded with embroidery or silkscreen printing.",
-            industrySlug: "textile",
-            categorySlug: "apparel-men",
-            subCategorySlug: "outerwear",
-            companyId: company1.id,
-            region: "Ташкент",
-            moq: "10 коробов (100 шт)",
-            priceFrom: 4.0,
-            priceTo: 5.5,
-            priceCurrency: "$",
-            priceUnit: "за шт",
-            type: "instock" as ProductFlow,
-            colors: ["#1a1a1a", "#f0f0f0", "#4a5568", "#c53030"],
-            leadTime: "2–5 дней",
-            verified: true,
-            tags: ["худи", "оверсайз", "трикотаж"],
-        },
-        {
-            id: 2,
-            titleRu: "Постельный комплект Satin 2-спальный",
-            titleEn: "Satin Bedding Set (Double)",
-            descriptionRu: "100% хлопок высшего качества (сатин). Гладкая текстура, долго сохраняет цвет после стирок.",
-            descriptionEn: "100% premium cotton (satin). Smooth texture, retains color long after washing.",
-            industrySlug: "textile",
-            categorySlug: "home-textile",
-            subCategorySlug: "",
-            companyId: company2.id,
-            region: "Фергана",
-            moq: "20 комплектов",
-            priceFrom: 8.0,
-            priceTo: 12.0,
-            priceCurrency: "$",
-            priceUnit: "за комплект",
-            type: "instock" as ProductFlow,
-            colors: ["#e8f5e9", "#f3e5f5", "#e3f2fd", "#fff8e1"],
-            leadTime: "3–7 дней",
-            verified: true,
-            tags: ["постельное", "сатин", "текстиль"],
-        },
-        {
-            id: 3,
-            titleRu: "Мужская рубашка Poplin Premium",
-            titleEn: "Premium Poplin Men's Shirt",
-            descriptionRu: "Классическая кроя, дышащая поплиновая ткань. Идеально для корпоративной формы.",
-            descriptionEn: "Classic fit, breathable poplin fabric. Ideal for corporate uniforms.",
-            industrySlug: "textile",
-            categorySlug: "apparel-men",
-            subCategorySlug: "workwear",
-            companyId: company3.id,
-            region: "Самарканд",
-            moq: "50 шт",
-            priceFrom: 5.5,
-            priceTo: 7.0,
-            priceCurrency: "$",
-            priceUnit: "за шт",
-            type: "whitelabel" as ProductFlow,
-            colors: ["#1a1a1a", "#f5f5f5", "#1565c0", "#6d4c41"],
-            leadTime: "15–20 дней",
-            verified: true,
-            tags: ["рубашка", "белый лейбл", "формальная"],
-        },
-        {
-            id: 4,
-            titleRu: "Ковёр ручной работы Bukhara",
-            titleEn: "Bukhara Handmade Carpet",
-            descriptionRu: "Традиционный бухарский орнамент. Отборная шерсть. Плетение 100 узлов на дюйм.",
-            descriptionEn: "Traditional Bukhara ornament. Selected wool. Weaving 100 knots per inch.",
-            industrySlug: "carpets",
-            categorySlug: "home-carpets",
-            subCategorySlug: "handmade-carpets",
-            companyId: company4.id,
-            region: "Бухара",
-            moq: "10 шт",
-            priceFrom: 45.0,
-            priceTo: 120.0,
-            priceCurrency: "$",
-            priceUnit: "за шт",
-            type: "rfq" as ProductFlow,
-            colors: ["#c0392b", "#2c3e50", "#f39c12"],
-            leadTime: "30–60 дней",
-            verified: true,
-            tags: ["ковёр", "ручная работа", "бухара"],
-        },
-    ];
-
-    for (const product of products) {
-        await prisma.product.upsert({
-            where: { id: product.id },
-            update: {},
-            create: product,
-        });
-    }
-    console.log("✅ Products created:", products.length);
-
-    // ─── Demo RFQ ──────────────────────────────────────────────────────────
-    await prisma.rfqRequest.create({
+    const seller1 = await prisma.user.create({
         data: {
-            title: "Корпоративная форма для 200 сотрудников",
-            category: "Форменная одежда",
-            categorySlug: "workwear",
-            quantity: "200 комплектов",
-            budget: "$15 000",
-            deadline: "2026-04-01",
-            description: "Нужна рабочая форма: брюки + рубашка. Цвет — тёмно-синий. Ткань — смесовая.",
-            status: "OPEN",
-            buyerId: buyer.id,
+            name: "FerTexile Factory",
+            email: "seller@b2b.uz",
+            password: passwordHash,
+            role: "SELLER",
         },
     });
-    console.log("✅ Demo RFQ created");
 
-    console.log("\n🎉 Seed complete!");
-    console.log("Логины пользователей для входа в систему:");
-    console.log("-----------------------------------------");
-    console.log("🛒 ПОКУПАТЕЛЬ:");
-    console.log("   Email: buyer@demo.uz\n   Pass:  demo123\n");
-    console.log("🏭 ФАБРИКА 1 (UzTextile Pro):");
-    console.log("   Email: seller@demo.uz\n   Pass:  demo123\n");
-    console.log("🏭 ФАБРИКА 2 (CottonLand UZ):");
-    console.log("   Email: seller2@demo.uz\n   Pass:  demo123\n");
-    console.log("🏭 ФАБРИКА 3 (StyleFactory):");
-    console.log("   Email: seller3@demo.uz\n   Pass:  demo123\n");
-    console.log("🏭 ФАБРИКА 4 (Bukhara Carpet House):");
-    console.log("   Email: seller4@demo.uz\n   Pass:  demo123\n");
-    console.log("-----------------------------------------");
+    const seller2 = await prisma.user.create({
+        data: {
+            name: "SilkRoad Co.",
+            email: "seller2@b2b.uz",
+            password: passwordHash,
+            role: "SELLER",
+        },
+    });
+
+    console.log("✓ Created users (admin, buyer, 2 sellers)");
+
+    // ─── 3. Companies ──────────────────────────────────────────────────────
+    const companies = await Promise.all([
+        prisma.company.create({
+            data: {
+                userId: seller1.id,
+                name: "FerTexile Factory",
+                slug: "fertextile-factory",
+                region: "Фергана",
+                country: "Узбекистан",
+                verified: true,
+                founded: 2008,
+                employees: "200-500",
+                rating: 4.8,
+                reviewCount: 124,
+                moqFrom: "100 шт",
+                leadTime: "20-35 дн.",
+                flows: ["instock", "whitelabel", "rfq"],
+                exportCountries: ["Россия", "Казахстан", "Германия", "ОАЭ", "Польша"],
+                certifications: ["ISO 9001", "OEKO-TEX Standard 100"],
+                descriptionRu: "Ведущий производитель трикотажных изделий в Фергане. Основные направления: базовый трикотаж, спортивная одежда, детский ассортимент.",
+                descriptionEn: "Leading knitwear manufacturer in Fergana. Core lines: basics, sportswear, children's clothing.",
+                aboutRu: "FerTexile основана в 2008 году. За 16 лет работы компания выросла до 350 сотрудников и 14 вязальных линий Shima Seiki. Экспортируем в 15+ стран мира. Собственная красильня, лаборатория контроля качества, возможность Private Label от 200 шт.",
+                aboutEn: "FerTexile was founded in 2008. Over 16 years, the company has grown to 350 employees and 14 Shima Seiki knitting lines. We export to 15+ countries. In-house dyeing shop, QC laboratory, Private Label from 200 pcs.",
+                specializationRu: "Трикотаж, Базовые худи, Спортивная форма, OEM/ODM",
+                specializationEn: "Knitwear, Basic Hoodies, Sportswear, OEM/ODM",
+                telegram: "@fertextile",
+                whatsapp: "+998901234567",
+                email: "export@fertextile.uz",
+                website: "fertextile.uz",
+                ordersCompleted: 1840,
+                repeatClients: 78,
+                onTimeDelivery: 94,
+                avgResponseHours: 3,
+                // B2B Export fields
+                businessType: "Manufacturer + OEM",
+                exportYears: 12,
+                exportRegions: ["CIS", "Europe", "Middle East"],
+                languages: ["ru", "en"],
+                productionCapacityRu: "50 000 единиц/месяц. 2 смены (16 ч/сутки). Собственная красильня и лаборатория QC.",
+                productionCapacityEn: "50,000 units/month. 2 shifts (16h/day). In-house dyeing shop and QC lab.",
+                qualityControlRu: "Поэтапный AQL-контроль. 100% проверка швов, цвета и отделки. Сторонняя инспекция допускается.",
+                qualityControlEn: "Step-by-step AQL inspection. 100% seams, color, finishing check. Third-party inspection allowed.",
+                thirdPartyInspection: true,
+                exportDocs: ["Invoice", "Packing List", "Certificate of Origin", "EUR.1"],
+            },
+        }),
+        prisma.company.create({
+            data: {
+                userId: seller2.id,
+                name: "SilkRoad Textiles",
+                slug: "silkroad-textiles",
+                region: "Самарканд",
+                country: "Узбекистан",
+                verified: true,
+                founded: 2015,
+                employees: "50-100",
+                rating: 4.6,
+                reviewCount: 57,
+                moqFrom: "50 шт",
+                leadTime: "15-25 дн.",
+                flows: ["instock", "rfq"],
+                exportCountries: ["Россия", "Китай", "Франция"],
+                certifications: ["GOTS", "ISO 14001"],
+                descriptionRu: "Производитель натурального шёлка и постельного белья категории люкс.",
+                descriptionEn: "Manufacturer of natural silk and luxury bedding.",
+                aboutRu: "SilkRoad Textiles специализируется на производстве шёлковых тканей и готовых изделий из натурального шёлка. Работаем с bridal boutiques, отелями 5* и оптовыми байерами из Европы и Азии.",
+                aboutEn: "SilkRoad Textiles specializes in silk fabrics and finished products from natural silk. We work with bridal boutiques, 5-star hotels, and wholesale buyers from Europe and Asia.",
+                specializationRu: "Натуральный шёлк, Постельное бельё, Шёлковые платья",
+                specializationEn: "Natural Silk, Bedding, Silk Dresses",
+                telegram: "@silkroadtex",
+                email: "sales@silkroad.uz",
+                ordersCompleted: 420,
+                repeatClients: 83,
+                onTimeDelivery: 97,
+                avgResponseHours: 6,
+                // B2B Export fields
+                businessType: "Manufacturer",
+                exportYears: 7,
+                exportRegions: ["CIS", "Europe", "China"],
+                languages: ["ru", "en", "zh"],
+                productionCapacityRu: "15 000 метров ткани / месяц. 3000 готовых изделий.",
+                productionCapacityEn: "15,000 m of fabric/month. 3,000 finished products.",
+                qualityControlRu: "Полный контроль каждой партии перед отгрузкой. AQL 2.5.",
+                qualityControlEn: "Full AQL 2.5 batch inspection before shipment.",
+                thirdPartyInspection: true,
+                exportDocs: ["Invoice", "Packing List", "Certificate of Origin", "Form A"],
+            },
+        }),
+    ]);
+    const [company1, company2] = companies;
+    console.log("✓ Created 2 companies");
+
+    // ─── 4. Products ───────────────────────────────────────────────────────
+    const products = await Promise.all([
+        // FerTexile products
+        prisma.product.create({
+            data: {
+                companyId: company1.id,
+                titleRu: "Худи базовое оверсайз",
+                titleEn: "Basic Oversized Hoodie",
+                categorySlug: "knitwear",
+                region: "Фергана",
+                type: "instock",
+                moq: "100 шт",
+                priceFrom: 4.50,
+                priceTo: 6.50,
+                priceCurrency: "$",
+                priceUnit: "шт",
+                colors: ["#1a1a1a", "#f0f0f0", "#4a5568", "#c53030"],
+                leadTime: "В наличии",
+                verified: true,
+                tags: ["худи", "оверсайз", "хлопок", "OEM"],
+                // B2B fields
+                materialComposition: "80% Cotton, 20% Polyester, 320 g/m²",
+                hsCode: "6110.20",
+                exportDocsReady: true,
+                hasCertificates: true,
+                samplesAvailable: true,
+                samplePrice: "$15",
+                shippingFrom: "Fergana, Uzbekistan",
+                shippingMethods: ["Air freight", "Road freight"],
+                packaging: "Poly bags + export carton (12 pcs/ctn)",
+                privateLabel: true,
+                paymentTerms: ["30/70 prepay", "LC (Letter of Credit)"],
+                views: 245,
+                ordersCompleted: 56,
+            },
+        }),
+        prisma.product.create({
+            data: {
+                companyId: company1.id,
+                titleRu: "Футболка поло White Label",
+                titleEn: "Polo Shirt White Label",
+                categorySlug: "knitwear",
+                region: "Фергана",
+                type: "whitelabel",
+                moq: "200 шт",
+                priceFrom: 3.20,
+                priceTo: 5.00,
+                priceCurrency: "$",
+                priceUnit: "шт",
+                colors: ["#1a1a1a", "#f0f0f0", "#1565c0"],
+                leadTime: "20-30 дн.",
+                verified: true,
+                tags: ["поло", "white label", "OEM"],
+                materialComposition: "100% Cotton pique, 220 g/m²",
+                hsCode: "6105.10",
+                exportDocsReady: true,
+                hasCertificates: true,
+                samplesAvailable: true,
+                samplePrice: "Free (≥500 pcs order)",
+                shippingFrom: "Fergana, Uzbekistan",
+                shippingMethods: ["Air freight", "Sea freight"],
+                packaging: "Retail boxes on request",
+                privateLabel: true,
+                paymentTerms: ["30/70 prepay", "Escrow"],
+                views: 132,
+                ordersCompleted: 22,
+            },
+        }),
+        prisma.product.create({
+            data: {
+                companyId: company1.id,
+                titleRu: "Спортивный костюм на заказ (RFQ)",
+                titleEn: "Custom Tracksuit RFQ",
+                categorySlug: "sportswear",
+                region: "Фергана",
+                type: "rfq",
+                moq: "500 шт",
+                priceFrom: 12.00,
+                priceTo: 18.00,
+                priceCurrency: "$",
+                priceUnit: "шт",
+                colors: ["#1a1a1a", "#c53030", "#1565c0"],
+                leadTime: "30-45 дн.",
+                verified: true,
+                tags: ["спорт", "костюм", "RFQ", "OEM"],
+                materialComposition: "Polyester 100% microfiber",
+                hsCode: "6211.33",
+                exportDocsReady: true,
+                hasCertificates: false,
+                samplesAvailable: true,
+                samplePrice: "$30",
+                shippingFrom: "Fergana, Uzbekistan",
+                shippingMethods: ["Air freight", "Sea freight", "Rail (China-Europe)"],
+                packaging: "Export cartons (5-layer)",
+                privateLabel: true,
+                paymentTerms: ["30/70 prepay", "LC (Letter of Credit)", "Escrow"],
+                views: 89,
+                ordersCompleted: 8,
+            },
+        }),
+        // SilkRoad products
+        prisma.product.create({
+            data: {
+                companyId: company2.id,
+                titleRu: "Постельный комплект шёлк 6D",
+                titleEn: "Silk 6D Bedding Set",
+                categorySlug: "home-textile",
+                region: "Самарканд",
+                type: "instock",
+                moq: "20 шт",
+                priceFrom: 45.00,
+                priceTo: 75.00,
+                priceCurrency: "$",
+                priceUnit: "шт",
+                colors: ["#f0f0f0", "#e8f5e9", "#f3e5f5"],
+                leadTime: "В наличии",
+                verified: true,
+                tags: ["шёлк", "постельное", "люкс"],
+                materialComposition: "100% Natural Silk 22 momme",
+                hsCode: "6302.31",
+                exportDocsReady: true,
+                hasCertificates: true,
+                samplesAvailable: true,
+                samplePrice: "$25",
+                shippingFrom: "Samarkand, Uzbekistan",
+                shippingMethods: ["Air freight", "Express courier"],
+                packaging: "Gift boxes with silk ribbon",
+                privateLabel: false,
+                paymentTerms: ["100% prepay", "30/70 prepay"],
+                views: 178,
+                ordersCompleted: 31,
+            },
+        }),
+        prisma.product.create({
+            data: {
+                companyId: company2.id,
+                titleRu: "Шёлковое платье натуральный шёлк",
+                titleEn: "Natural Silk Dress",
+                categorySlug: "silk-dresses",
+                region: "Самарканд",
+                type: "rfq",
+                moq: "50 шт",
+                priceFrom: 28.00,
+                priceTo: 55.00,
+                priceCurrency: "$",
+                priceUnit: "шт",
+                colors: ["#c53030", "#f3e5f5", "#1a1a1a"],
+                leadTime: "25-35 дн.",
+                verified: true,
+                tags: ["шёлк", "платье", "RFQ", "OEM"],
+                materialComposition: "100% Mulberry Silk 16 momme",
+                hsCode: "6204.49",
+                exportDocsReady: false,
+                hasCertificates: false,
+                samplesAvailable: true,
+                samplePrice: "$40",
+                shippingFrom: "Samarkand, Uzbekistan",
+                shippingMethods: ["Air freight"],
+                packaging: "Custom packaging available",
+                privateLabel: true,
+                paymentTerms: ["100% prepay", "Escrow"],
+                views: 67,
+                ordersCompleted: 12,
+            },
+        }),
+    ]);
+    console.log(`✓ Created ${products.length} products`);
+
+    // ─── 5. Banners ────────────────────────────────────────────────────────
+    await (prisma as any).banner?.createMany({
+        data: [
+            {
+                title: "🏭 Прямые поставки из Узбекистана — без посредников",
+                imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&q=80",
+                linkUrl: "/companies",
+                isActive: true,
+                position: 0,
+            },
+            {
+                title: "📐 Разместите RFQ и получите предложения от 50+ фабрик",
+                imageUrl: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=1400&q=80",
+                linkUrl: "/rfq/new",
+                isActive: true,
+                position: 1,
+            },
+            {
+                title: "🏷 OEM / White Label — ваш бренд, наше производство",
+                imageUrl: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=1400&q=80",
+                linkUrl: "/products?type=whitelabel",
+                isActive: true,
+                position: 2,
+            },
+        ],
+    }).catch(() => console.log("⚠ Banners table not available yet — run prisma generate first"));
+
+    // ─── 6. RFQ Requests ───────────────────────────────────────────────────
+    const rfq1 = await prisma.rfqRequest.create({
+        data: {
+            buyerId: buyer1.id,
+            titleRu: "Худи оверсайз 500 шт, 5 цветов",
+            titleEn: "Oversized Hoodie 500 pcs, 5 colors",
+            categorySlug: "knitwear",
+            quantity: 500,
+            budget: "$2 000–3 000",
+            deadline: "2026-04-01",
+            status: "OPEN",
+            descriptionRu: "Нужны худи базовые оверсайз 80% хлопок. 5 цветов, размерный ряд S-XXL. Требуется Private Label, бирки под свой бренд.",
+            descriptionEn: "Need basic oversized hoodies 80% cotton. 5 colors, size run S-XXL. Private Label required, own brand labels.",
+            destinationCountry: "Kazakhstan",
+        },
+    });
+
+    // ─── 7. Orders ─────────────────────────────────────────────────────────
+    await (prisma as any).order?.createMany({
+        data: [
+            {
+                productId: products[0].id,
+                buyerId: buyer1.id,
+                sellerId: seller1.id,
+                quantity: 200,
+                totalPrice: 1100,
+                status: "PROCESSING",
+            },
+            {
+                productId: products[3].id,
+                buyerId: buyer1.id,
+                sellerId: seller2.id,
+                quantity: 30,
+                totalPrice: 1650,
+                status: "COMPLETED",
+            },
+        ],
+    }).catch(() => console.log("⚠ Order table not available yet"));
+
+    console.log("✓ Created RFQ & Orders");
+
+    // ─── 8. Search Queries ─────────────────────────────────────────────────
+    await (prisma as any).searchQuery?.createMany({
+        data: [
+            { query: "худи", count: 142 },
+            { query: "шёлк", count: 98 },
+            { query: "постельное бельё", count: 76 },
+            { query: "спортивная форма", count: 54 },
+            { query: "polo shirt", count: 43 },
+            { query: "футболка", count: 38 },
+        ],
+    }).catch(() => console.log("⚠ SearchQuery table not available yet"));
+
+    console.log("✅ Seed complete!");
+    console.log(`   Users:     ${await prisma.user.count()}`);
+    console.log(`   Companies: ${await prisma.company.count()}`);
+    console.log(`   Products:  ${await prisma.product.count()}`);
 }
 
 main()
-    .catch(console.error)
+    .catch((e) => {
+        console.error("❌ Seed error:", e);
+        process.exit(1);
+    })
     .finally(() => prisma.$disconnect());

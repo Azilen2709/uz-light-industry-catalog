@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminDashboardPage() {
@@ -23,16 +24,16 @@ export default async function AdminDashboardPage() {
     ]);
 
     const statCards = [
-        { title: "Всего пользователей", value: totalUsers, icon: "Пользователи 👥", details: `${totalBuyers} покупателей / ${totalSellers} продавцов` },
-        { title: "Компании", value: totalCompanies, icon: "Компании 🏢", details: `${verifiedCompanies} верифицировано` },
-        { title: "Товары в каталоге", value: totalProducts, icon: "Товары 📦", details: "Опубликовано на платформе" },
-        { title: "Заявки (RFQ)", value: totalRfqs, icon: "Заявки 📨", details: `${activeRfqs} активных (OPEN)` },
+        { title: "Р’СЃРµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№", value: totalUsers, icon: "РџРѕР»СЊР·РѕРІР°С‚РµР»Рё рџ‘Ґ", details: `${totalBuyers} РїРѕРєСѓРїР°С‚РµР»РµР№ / ${totalSellers} РїСЂРѕРґР°РІС†РѕРІ` },
+        { title: "РљРѕРјРїР°РЅРёРё", value: totalCompanies, icon: "РљРѕРјРїР°РЅРёРё рџЏў", details: `${verifiedCompanies} РІРµСЂРёС„РёС†РёСЂРѕРІР°РЅРѕ` },
+        { title: "РўРѕРІР°СЂС‹ РІ РєР°С‚Р°Р»РѕРіРµ", value: totalProducts, icon: "РўРѕРІР°СЂС‹ рџ“¦", details: "РћРїСѓР±Р»РёРєРѕРІР°РЅРѕ РЅР° РїР»Р°С‚С„РѕСЂРјРµ" },
+        { title: "Р—Р°СЏРІРєРё (RFQ)", value: totalRfqs, icon: "Р—Р°СЏРІРєРё рџ“Ё", details: `${activeRfqs} Р°РєС‚РёРІРЅС‹С… (OPEN)` },
     ];
 
     return (
         <div>
             <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24, color: "var(--color-text)" }}>
-                Панель управления
+                РџР°РЅРµР»СЊ СѓРїСЂР°РІР»РµРЅРёСЏ
             </h1>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20, marginBottom: 30 }}>
@@ -54,12 +55,13 @@ export default async function AdminDashboardPage() {
             </div>
 
             <div style={{ background: "white", borderRadius: 16, border: "1px solid var(--color-border)", padding: 24 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 16 }}>Быстрые действия</h2>
+                <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 16 }}>Р‘С‹СЃС‚СЂС‹Рµ РґРµР№СЃС‚РІРёСЏ</h2>
                 <p style={{ color: "var(--color-text-secondary)", fontSize: 14, marginBottom: 20 }}>
-                    Используйте левое меню для перехода к разделам управления пользователями, модерации компаний и каталога товаров.
+                    РСЃРїРѕР»СЊР·СѓР№С‚Рµ Р»РµРІРѕРµ РјРµРЅСЋ РґР»СЏ РїРµСЂРµС…РѕРґР° Рє СЂР°Р·РґРµР»Р°Рј СѓРїСЂР°РІР»РµРЅРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏРјРё, РјРѕРґРµСЂР°С†РёРё РєРѕРјРїР°РЅРёР№ Рё РєР°С‚Р°Р»РѕРіР° С‚РѕРІР°СЂРѕРІ.
                 </p>
                 {/* We'll add recent activity here later if needed */}
             </div>
         </div>
     );
 }
+

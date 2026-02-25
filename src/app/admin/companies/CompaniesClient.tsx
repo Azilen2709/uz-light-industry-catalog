@@ -8,7 +8,7 @@ type Company = {
     slug: string;
     name: string;
     region: string;
-    industry: string;
+    industrySlugs: string[];
     verified: boolean;
     rating: number;
     userCount: number;
@@ -95,7 +95,7 @@ export default function CompaniesClient({ initialCompanies }: { initialCompanies
                                     <div style={{ color: "var(--color-muted)", fontSize: 13, marginTop: 4 }}>ID: {company.id}</div>
                                 </td>
                                 <td style={{ padding: "16px 20px" }}>
-                                    <div style={{ fontWeight: 500 }}>{company.industry}</div>
+                                    <div style={{ fontWeight: 500 }}>{company.industrySlugs.join(", ") || "—"}</div>
                                     <div style={{ color: "var(--color-muted)", fontSize: 13 }}>{company.region}</div>
                                 </td>
                                 <td style={{ padding: "16px 20px", textAlign: "center" }}>

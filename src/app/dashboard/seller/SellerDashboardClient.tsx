@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { signOut } from "next-auth/react";
 import { useT } from "@/contexts/LanguageContext";
 import { Company, Product } from "@prisma/client";
 
@@ -46,12 +47,22 @@ export default function SellerDashboardClient({ company, myProducts, rfqs = [] }
     const { lang } = useT();
     const [tab, setTab] = useState<"rfq" | "orders" | "products">("rfq");
 
+    // ─── Real stats computed from props ────────────────────────────────────
+    const totalViews = useMemo(
+        () => myProducts.reduce((sum, p) => sum + ((p as any).views ?? 0), 0),
+        [myProducts]
+    );
+    const newRFQsCount = rfqs.filter((r: any) =>
+        r.status === "OPEN" && !r.responses?.some((resp: any) => resp.sellerId === company.id?.toString())
+    ).length;
+
+
     const L = {
         ru: {
             greeting: "Здравствуйте,", logout: "Выйти",
             role: "Поставщик", home: "Главная",
-            statRFQ: "Новых RFQ", statOrders: "Активных заказов",
-            statRevenue: "Выручка за месяц", statRating: "Рейтинг",
+            statRFQ: "Новых RFQ", statOrders: "Товаров в каталоге",
+            statRevenue: "Просмотров всего", statRating: "От покупателей",
             tabRFQ: "Входящие RFQ", tabOrders: "Заказы", tabProducts: "Мои товары",
             addProduct: "+ Добавить товар",
             rfqBuyer: "Покупатель", rfqRequest: "Запрос", rfqQty: "Объём", rfqBudget: "Бюджет",
@@ -66,8 +77,8 @@ export default function SellerDashboardClient({ company, myProducts, rfqs = [] }
         en: {
             greeting: "Welcome,", logout: "Sign Out",
             role: "Supplier", home: "Home",
-            statRFQ: "New RFQs", statOrders: "Active Orders",
-            statRevenue: "Monthly Revenue", statRating: "Rating",
+            statRFQ: "New RFQs", statOrders: "Products Listed",
+            statRevenue: "Total Views", statRating: "Avg. Rating",
             tabRFQ: "Incoming RFQs", tabOrders: "Orders", tabProducts: "My Products",
             addProduct: "+ Add Product",
             rfqBuyer: "Buyer", rfqRequest: "Request", rfqQty: "Volume", rfqBudget: "Budget",
@@ -104,7 +115,12 @@ export default function SellerDashboardClient({ company, myProducts, rfqs = [] }
                             🏭 {lang === "ru" ? "Мой профиль" : "My Profile"}
                         </Link>
                         <Link href="/" style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>{L.home}</Link>
-                        <Link href="/auth/login" style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "6px 12px" }}>{L.logout}</Link>
+                        <button
+                            onClick={() => signOut({ callbackUrl: "/auth/login" })}
+                            style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", background: "none", cursor: "pointer", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "6px 12px" }}
+                        >
+                            {L.logout}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -113,10 +129,10 @@ export default function SellerDashboardClient({ company, myProducts, rfqs = [] }
                 {/* Stat cards */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
                     {[
-                        { icon: "📨", value: SELLER_STATS.newRFQs, label: L.statRFQ, color: "#d97706", bg: "#fef3c7" },
-                        { icon: "⚙️", value: SELLER_STATS.activeOrders, label: L.statOrders, color: "#2563eb", bg: "#dbeafe" },
-                        { icon: "💰", value: SELLER_STATS.monthlyRevenue, label: L.statRevenue, color: "#15803d", bg: "#dcfce7" },
-                        { icon: "⭐", value: SELLER_STATS.rating, label: L.statRating, color: "#f59e0b", bg: "#fef3c7" },
+                        { icon: "📨", value: newRFQsCount, label: L.statRFQ, color: "#d97706", bg: "#fef3c7" },
+                        { icon: "📦", value: myProducts.length, label: L.statOrders, color: "#2563eb", bg: "#dbeafe" },
+                        { icon: "👁", value: totalViews.toLocaleString(), label: L.statRevenue, color: "#15803d", bg: "#dcfce7" },
+                        { icon: "⭐", value: (company as any).rating ?? "—", label: L.statRating, color: "#f59e0b", bg: "#fef3c7" },
                     ].map(s => (
                         <div key={s.label} style={{ background: "white", border: "1px solid var(--color-border)", borderRadius: 14, padding: "18px 20px", display: "flex", alignItems: "center", gap: 14 }}>
                             <div style={{ width: 48, height: 48, borderRadius: 12, background: s.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{s.icon}</div>
@@ -258,7 +274,7 @@ export default function SellerDashboardClient({ company, myProducts, rfqs = [] }
                                             <td style={tableCell}><strong style={{ color: "var(--color-primary)" }}>{p.priceCurrency}{p.priceFrom}–{p.priceTo}</strong></td>
                                             <td style={tableCell}>{p.moq}</td>
                                             <td style={tableCell}>
-                                                <Link href={`/products/${p.id}`} style={{ fontSize: 12, fontWeight: 600, color: "var(--color-primary)", textDecoration: "none" }}>
+                                                <Link href={`/products/${p.id}/edit`} style={{ fontSize: 12, fontWeight: 600, color: "var(--color-primary)", textDecoration: "none" }}>
                                                     {L.prodEdit} →
                                                 </Link>
                                             </td>

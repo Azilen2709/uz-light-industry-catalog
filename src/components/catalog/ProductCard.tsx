@@ -101,14 +101,31 @@ export default function ProductCard({ product: p, view, lang = "ru" }: ProductCa
                         <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 4, fontWeight: 500 }}>
                             MOQ: <strong style={{ color: "var(--color-primary)", fontWeight: 700 }}>{p.moq}</strong>
                         </div>
-                        <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 16, fontWeight: 500 }}>
+                        <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 12, fontWeight: 500 }}>
                             ⏱ {p.leadTime}
                         </div>
-                        <div style={{ fontSize: 20, fontWeight: 800, color: "var(--color-text)", marginBottom: 16, letterSpacing: "-0.01em" }}>
+                        <div style={{ fontSize: 20, fontWeight: 800, color: "var(--color-text)", marginBottom: 12, letterSpacing: "-0.01em" }}>
                             {p.priceCurrency}{p.priceFrom.toFixed(2)} – {p.priceCurrency}{p.priceTo.toFixed(2)}
                             <span style={{ fontSize: 12, color: "var(--color-muted)", fontWeight: 600, marginLeft: 4 }}>{p.priceUnit}</span>
                         </div>
+
+                        {/* B2B stats */}
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+                            {(p as any).views > 0 && (
+                                <span style={{ fontSize: 10, color: "var(--color-muted)" }}>👁 {((p as any).views as number).toLocaleString()}</span>
+                            )}
+                            {(p as any).ordersCompleted > 0 && (
+                                <span style={{ fontSize: 10, color: "#16a34a", fontWeight: 700 }}>✅ {(p as any).ordersCompleted} сделок</span>
+                            )}
+                            {(p as any).hasCertificates && (
+                                <span style={{ fontSize: 9, background: "#ecfdf5", color: "#065f46", fontWeight: 700, padding: "1px 6px", borderRadius: 6 }}>Серт.</span>
+                            )}
+                            {(p as any).samplesAvailable && (
+                                <span style={{ fontSize: 9, background: "#eff6ff", color: "#1e40af", fontWeight: 700, padding: "1px 6px", borderRadius: 6 }}>Образцы</span>
+                            )}
+                        </div>
                         <span className="btn btn-primary" style={{ borderRadius: "var(--radius-xl)", padding: "10px 20px" }}>Подробнее →</span>
+
                     </div>
                 </div>
             </Link>
@@ -207,7 +224,7 @@ export default function ProductCard({ product: p, view, lang = "ru" }: ProductCa
                         </div>
 
                         {/* Price */}
-                        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+                        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
                             <div>
                                 <span style={{ fontSize: 18, fontWeight: 800, color: "var(--color-text)", letterSpacing: "-0.01em" }}>
                                     {p.priceCurrency}{p.priceFrom.toFixed(2)} – {p.priceCurrency}{p.priceTo.toFixed(2)}
@@ -221,6 +238,25 @@ export default function ProductCard({ product: p, view, lang = "ru" }: ProductCa
                             }}>
                                 →
                             </div>
+                        </div>
+
+                        {/* B2B export stats */}
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", paddingTop: 8, borderTop: "1px solid var(--color-border)" }}>
+                            {(p as any).views > 0 && (
+                                <span style={{ fontSize: 10, color: "var(--color-muted)" }}>👁 {((p as any).views as number).toLocaleString()}</span>
+                            )}
+                            {(p as any).ordersCompleted > 0 && (
+                                <span style={{ fontSize: 10, color: "#16a34a", fontWeight: 700 }}>✅ {(p as any).ordersCompleted} сделок</span>
+                            )}
+                            {(p as any).hasCertificates && (
+                                <span style={{ fontSize: 9, background: "#ecfdf5", color: "#065f46", fontWeight: 700, padding: "1px 6px", borderRadius: 6 }}>Серт.</span>
+                            )}
+                            {(p as any).samplesAvailable && (
+                                <span style={{ fontSize: 9, background: "#eff6ff", color: "#1e40af", fontWeight: 700, padding: "1px 6px", borderRadius: 6 }}>Образцы</span>
+                            )}
+                            <span style={{ fontSize: 10, color: "var(--color-muted)", marginLeft: "auto" }}>
+                                {new Date(p.createdAt).toLocaleDateString("ru")}
+                            </span>
                         </div>
                     </div>
                 </div>

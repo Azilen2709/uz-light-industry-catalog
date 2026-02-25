@@ -1,4 +1,4 @@
-// ─── Company by ID API ─────────────────────────────────────────────────────
+// ─── Company by ID or Slug API ─────────────────────────────────────────────
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -9,14 +9,11 @@ export async function GET(
 ) {
     try {
         const { id } = await params;
-        const companyId = parseInt(id, 10);
-
-        if (isNaN(companyId)) {
-            return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
-        }
+        const numericId = parseInt(id, 10);
+        const isNumeric = !isNaN(numericId);
 
         const company = await prisma.company.findUnique({
-            where: { id: companyId },
+            where: isNumeric ? { id: numericId } : { slug: id },
             include: {
                 products: {
                     orderBy: { createdAt: "desc" },

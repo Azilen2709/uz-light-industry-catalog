@@ -6,7 +6,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ─── Enums ─────────────────────────────────────────────────────────────────
@@ -37,6 +36,14 @@ enum RfqResponseStatus {
   REJECTED
 }
 
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+
 // ─── Models ────────────────────────────────────────────────────────────────
 
 model User {
@@ -52,6 +59,8 @@ model User {
   rfqResponses     RfqResponse[]
   sentMessages     Message[]     @relation("SentMessages")
   receivedMessages Message[]     @relation("ReceivedMessages")
+  buyerOrders      Order[]       @relation("BuyerOrders")
+  sellerOrders     Order[]       @relation("SellerOrders")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -89,6 +98,7 @@ model Company {
   repeatClients    Int         @default(0)
   onTimeDelivery   Int         @default(0)
   avgResponseHours Int         @default(24)
+  views            Int         @default(0)
 
   // Contacts
   telegram         String?
@@ -96,6 +106,17 @@ model Company {
   email            String?
   website          String?
   logo             String?
+  // B2B Export Profile
+  businessType     String?     // manufacturer / OEM / ODM
+  exportYears      Int         @default(0)
+  exportRegions    String[]
+  languages        String[]    @default(["ru"])
+  productionCapacityRu String  @default("")
+  productionCapacityEn String  @default("")
+  qualityControlRu String     @default("")
+  qualityControlEn String     @default("")
+  thirdPartyInspection Boolean @default(false)
+  exportDocs       String[]   // list of docs they can provide
 
   users    User[]
   products Product[]
@@ -125,9 +146,24 @@ model Product {
   verified      Boolean     @default(false)
   tags          String[]
   image         String?
+  // B2B Export fields
+  materialComposition String  @default("")
+  hsCode           String      @default("")  // HS / ТН ВЭД
+  exportDocsReady  Boolean     @default(false)
+  hasCertificates  Boolean     @default(false)
+  samplesAvailable Boolean     @default(false)
+  samplePrice      String      @default("")
+  shippingFrom     String      @default("")
+  shippingMethods  String[]
+  packaging        String      @default("")  // Тип упаковки + габариты
+  privateLabel     Boolean     @default(false)
+  paymentTerms     String[]    // prepay / LC / escrow
+  views            Int         @default(0)
+  ordersCompleted  Int         @default(0)
 
   companyId Int
   company   Company @relation(fields: [companyId], references: [id])
+  orders    Order[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -183,3 +219,41 @@ model Message {
 
   createdAt DateTime @default(now())
 }
+
+model SearchQuery {
+  id        String   @id @default(cuid())
+  query     String   @unique
+  count     Int      @default(1)
+  updatedAt DateTime @updatedAt
+}
+
+model Banner {
+  id        Int      @id @default(autoincrement())
+  title     String
+  imageUrl  String
+  linkUrl   String?
+  isActive  Boolean  @default(true)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  status      OrderStatus @default(PENDING)
+  quantity    Int
+  totalPrice  Float
+  
+  productId   Int
+  product     Product     @relation(fields: [productId], references: [id])
+  
+  buyerId     String
+  buyer       User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  
+  sellerId    String
+  seller      User        @relation("SellerOrders", fields: [sellerId], references: [id])
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+

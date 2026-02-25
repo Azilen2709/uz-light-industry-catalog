@@ -127,7 +127,7 @@ export default function IndustryPage({ params }: Props) {
                                     {relatedCompanies.length}+ {lang === "ru" ? "фабрик" : "factories"}
                                 </span>
                                 <span style={{ background: "rgba(255,255,255,0.2)", color: "white", fontSize: 13, fontWeight: 700, borderRadius: 20, padding: "4px 12px", backdropFilter: "blur(4px)" }}>
-                                    {industry.subcategories.length} {lang === "ru" ? "подкатегорий" : "subcategories"}
+                                    {industry.categories.reduce((acc, c) => acc + c.subcategories.length, 0)} {lang === "ru" ? "подкатегорий" : "subcategories"}
                                 </span>
                             </div>
                         </div>
@@ -172,7 +172,7 @@ export default function IndustryPage({ params }: Props) {
                         >
                             {L.all} ({products.length})
                         </button>
-                        {industry.subcategories.map(sub => {
+                        {industry.categories.flatMap(c => c.subcategories).map((sub: { slug: string; icon?: string; label: { ru: string; en: string } }) => {
                             const count = products.filter(p => p.categorySlug === sub.slug || p.tags?.includes(sub.slug)).length;
                             const isActive = activeSubcat === sub.slug;
                             return (
@@ -205,7 +205,7 @@ export default function IndustryPage({ params }: Props) {
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
                         <h2 style={{ fontSize: 18, fontWeight: 800 }}>
                             {activeSubcat
-                                ? industry.subcategories.find(s => s.slug === activeSubcat)?.label[lang]
+                                ? industry.categories.flatMap(c => c.subcategories).find((s: { slug: string; label: { ru: string; en: string } }) => s.slug === activeSubcat)?.label[lang]
                                 : industry.label[lang]}
                             <span style={{ marginLeft: 8, fontSize: 14, fontWeight: 500, color: "var(--color-muted)" }}>
                                 — {filtered.length} {L.products}
@@ -282,7 +282,7 @@ export default function IndustryPage({ params }: Props) {
                             🗂 {L.subcatFilter}
                         </div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                            {industry.subcategories.map(sub => (
+                            {industry.categories.flatMap(c => c.subcategories).map((sub: { slug: string; icon?: string; label: { ru: string; en: string } }) => (
                                 <button
                                     key={sub.slug}
                                     onClick={() => setActiveSubcat(activeSubcat === sub.slug ? null : sub.slug)}

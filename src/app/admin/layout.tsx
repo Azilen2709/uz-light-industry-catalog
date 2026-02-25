@@ -16,13 +16,16 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     }
 
     const navItems = [
-        { label: "Dashboard", href: "/admin", icon: "📊" },
+        { label: "Dashboard", href: "/admin", icon: "🏠" },
+        { label: "📊 Аналитика", href: "/admin/analytics", icon: "📊" },
+        { label: "🖼 Баннеры", href: "/admin/banners", icon: "🖼" },
         { label: "Пользователи", href: "/admin/users", icon: "👥" },
         { label: "Компании", href: "/admin/companies", icon: "🏢" },
         { label: "Товары", href: "/admin/products", icon: "📦" },
         { label: "Заявки (RFQ)", href: "/admin/rfq", icon: "📨" },
         { label: "Категории", href: "/admin/categories", icon: "📑" },
     ];
+
 
     return (
         <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}>

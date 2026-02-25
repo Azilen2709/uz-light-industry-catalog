@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useT } from "@/contexts/LanguageContext";
 import { CATEGORIES, getRegionLabel } from "@/lib/data";
-import { SIZE_TABLES, INDUSTRY_TAXONOMY } from "@/lib/taxonomy";
+import { SIZE_TABLES, getSizeTableType } from "@/lib/taxonomy";
 import { Product, Company } from "@prisma/client";
 
 const typeColors = {
@@ -13,18 +13,7 @@ const typeColors = {
     rfq: { bg: "#ede9fe", text: "#6d28d9" },
 };
 
-// Map categorySlug → sizeTable type
-function getSizeTableType(categorySlug: string): keyof typeof SIZE_TABLES {
-    for (const ind of INDUSTRY_TAXONOMY) {
-        const sub = ind.subcategories.find(s => s.slug === categorySlug);
-        if (sub) return sub.sizeTable;
-    }
-    // fallback by slug keywords
-    if (categorySlug === "footwear") return "footwear";
-    if (categorySlug === "carpets") return "carpet";
-    if (["outerwear", "knitwear", "dresses", "workwear"].includes(categorySlug)) return "clothing";
-    return "none";
-}
+
 
 // Mock extra details per product
 const productDetails: Record<number, {
@@ -93,13 +82,14 @@ export default function ProductPage() {
             .then(data => {
                 if (!data.error) {
                     setProduct(data);
-                    // Fetch related products
+                    // Track view (fire and forget)
+                    fetch(`/api/products/${productId}/view`, { method: "POST" }).catch(() => { });
+                    // Fetch related products (handle paginated response)
                     fetch(`/api/products?category=${data.categorySlug}`)
                         .then(res => res.json())
                         .then(relData => {
-                            if (Array.isArray(relData)) {
-                                setRelated(relData.filter((p: any) => p.id !== data.id).slice(0, 3));
-                            }
+                            const arr = Array.isArray(relData) ? relData : relData?.products ?? [];
+                            setRelated(arr.filter((p: any) => p.id !== data.id).slice(0, 3));
                         });
                 }
                 setLoading(false);
@@ -109,6 +99,7 @@ export default function ProductPage() {
                 setLoading(false);
             });
     }, [productId]);
+
 
     if (loading) {
         return (
@@ -287,7 +278,66 @@ export default function ProductPage() {
                                 </p>
                             </div>
                         )}
+
+                        {/* B2B Export Info Block */}
+                        {(() => {
+                            const p = product as any;
+                            const rows = [
+                                p.hsCode && { icon: "🔖", label: lang === "ru" ? "Код ТН ВЭД / HS" : "HS Code", value: p.hsCode },
+                                p.materialComposition && { icon: "🧪", label: lang === "ru" ? "Состав" : "Material", value: p.materialComposition },
+                                p.packaging && { icon: "📦", label: lang === "ru" ? "Упаковка" : "Packaging", value: p.packaging },
+                                p.shippingFrom && { icon: "🚢", label: lang === "ru" ? "Отгрузка из" : "Ships from", value: p.shippingFrom },
+                                p.shippingMethods?.length && { icon: "✈️", label: lang === "ru" ? "Способы доставки" : "Shipping", value: (p.shippingMethods as string[]).join(", ") },
+                                p.paymentTerms?.length && { icon: "💳", label: lang === "ru" ? "Условия оплаты" : "Payment Terms", value: (p.paymentTerms as string[]).join(", ") },
+                            ].filter(Boolean);
+
+                            const flags = [
+                                p.exportDocsReady && (lang === "ru" ? "✅ Экспортные документы готовы" : "✅ Export docs ready"),
+                                p.hasCertificates && (lang === "ru" ? "🏅 Сертификаты наличии" : "🏅 Certificates available"),
+                                p.samplesAvailable && (lang === "ru" ? `🧪 Образцы: ${p.samplePrice || (lang === "ru" ? "бесплатно" : "free")}` : `🧪 Samples: ${p.samplePrice || "free"}`),
+                                p.privateLabel && (lang === "ru" ? "🏷 Поддержка Private Label / OEM" : "🏷 Private Label / OEM supported"),
+                            ].filter(Boolean);
+
+                            if (rows.length === 0 && flags.length === 0) return null;
+
+                            return (
+                                <div style={{ background: "white", border: "1px solid var(--color-border)", borderRadius: 16, padding: 24, marginBottom: 24, borderLeft: "4px solid #3b82f6" }}>
+                                    <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: "#1e40af" }}>
+                                        🌍 {lang === "ru" ? "Экспорт и соответствие" : "Export & Compliance"}
+                                    </h3>
+
+                                    {flags.length > 0 && (
+                                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: rows.length > 0 ? 16 : 0 }}>
+                                            {flags.map((f: any) => (
+                                                <span key={f} style={{ fontSize: 12, fontWeight: 600, background: "#eff6ff", color: "#1d4ed8", padding: "4px 12px", borderRadius: 20, border: "1px solid #bfdbfe" }}>
+                                                    {f}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {rows.length > 0 && (
+                                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                                            <tbody>
+                                                {rows.map((row: any) => (
+                                                    <tr key={row.label} style={{ borderBottom: "1px solid var(--color-border)" }}>
+                                                        <td style={{ padding: "8px 0", fontSize: 13, color: "var(--color-muted)", width: 180 }}>
+                                                            {row.icon} {row.label}
+                                                        </td>
+                                                        <td style={{ padding: "8px 0", fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>
+                                                            {row.value}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
+                            );
+                        })()}
+
                     </div>
+
                     {/* Right: Buy panel */}
                     <div style={{ position: "sticky", top: 84 }}>
                         {/* Badges */}

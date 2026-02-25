@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { CATEGORIES } from "@/lib/data";
 import HeroSection from "@/components/home/HeroSection";
+import BannerStrip from "@/components/home/BannerStrip";
 import CategoriesSection from "@/components/home/CategoriesSection";
 import HowItWorksSection from "@/components/home/HowItWorksSection";
 import TopProductsSection from "@/components/home/TopProductsSection";
 import TopFactoriesSection from "@/components/home/TopFactoriesSection";
 import StatsSection from "@/components/home/StatsSection";
 import { prisma } from "@/lib/prisma";
+
+export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const [topProducts, topCompanies, companiesCount, productsCount] = await Promise.all([
@@ -44,6 +47,7 @@ export default async function HomePage() {
   return (
     <>
       <HeroSection />
+      <BannerStrip />
       <StatsSection companiesCount={companiesCount} productsCount={productsCount} />
       <CategoriesSection />
       <HowItWorksSection />

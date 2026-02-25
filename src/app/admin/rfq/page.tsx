@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import RfqClient from "./RfqClient";
 
@@ -22,3 +23,4 @@ export default async function AdminRfqPage() {
 
     return <RfqClient initialRfqs={formattedRfqs} />;
 }
+

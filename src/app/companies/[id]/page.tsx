@@ -93,7 +93,11 @@ export default function CompanyPage() {
         fetch(`/api/companies/${companyId}`)
             .then(res => res.json())
             .then(data => {
-                if (!data.error) setCompany(data);
+                if (!data.error) {
+                    setCompany(data);
+                    // Track view (fire and forget)
+                    fetch(`/api/companies/${companyId}/view`, { method: "POST" }).catch(() => { });
+                }
                 setLoading(false);
             })
             .catch(err => {
@@ -101,6 +105,7 @@ export default function CompanyPage() {
                 setLoading(false);
             });
     }, [companyId]);
+
 
     const L = {
         ru: {
@@ -295,8 +300,98 @@ export default function CompanyPage() {
                         </p>
                     </div>
 
-                    {/* Production Capacity — NEW */}
+                    {/* B2B Export Profile — NEW */}
+                    {(() => {
+                        const c = company as any;
+                        const hasData = c.businessType || c.exportYears > 0 || c.exportRegions?.length || c.qualityControlRu || c.productionCapacityRu;
+                        if (!hasData) return null;
+                        return (
+                            <div style={{ background: "white", border: "1px solid var(--color-border)", borderRadius: 16, padding: 24, marginBottom: 20, borderLeft: "4px solid #3b82f6" }}>
+                                <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 16, color: "#1e40af" }}>
+                                    🌍 {lang === "ru" ? "B2B-профиль экспортёра" : "B2B Export Profile"}
+                                </h2>
+
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 16 }}>
+                                    {[
+                                        c.businessType && {
+                                            icon: "🏗️",
+                                            label: lang === "ru" ? "Тип производства" : "Business Type",
+                                            value: c.businessType
+                                        },
+                                        c.exportYears > 0 && {
+                                            icon: "📅",
+                                            label: lang === "ru" ? "Опыт экспорта" : "Export Experience",
+                                            value: lang === "ru" ? `${c.exportYears} лет` : `${c.exportYears} years`
+                                        },
+                                        c.thirdPartyInspection && {
+                                            icon: "🔍",
+                                            label: lang === "ru" ? "Инспекция" : "Inspection",
+                                            value: lang === "ru" ? "Допускается сторонняя инспекция" : "Third-party inspection allowed"
+                                        },
+                                        c.languages?.length > 0 && {
+                                            icon: "💬",
+                                            label: lang === "ru" ? "Языки" : "Languages",
+                                            value: (c.languages as string[]).join(", ").toUpperCase()
+                                        },
+                                    ].filter(Boolean).map((item: any) => (
+                                        <div key={item.label} style={{
+                                            background: "#eff6ff", borderRadius: 12,
+                                            padding: "12px 14px", border: "1px solid #bfdbfe",
+                                        }}>
+                                            <div style={{ fontSize: 11, color: "#3b82f6", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>
+                                                {item.icon} {item.label}
+                                            </div>
+                                            <div style={{ fontSize: 14, fontWeight: 700, color: "#1e3a5f" }}>{item.value}</div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Export regions */}
+                                {c.exportRegions?.length > 0 && (
+                                    <div style={{ marginBottom: 14 }}>
+                                        <div style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
+                                            🗺️ {lang === "ru" ? "Регионы экспорта" : "Export Regions"}
+                                        </div>
+                                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                            {(c.exportRegions as string[]).map((r: string) => (
+                                                <span key={r} style={{ fontSize: 12, fontWeight: 600, background: "#f0f9ff", color: "#0369a1", padding: "4px 12px", borderRadius: 20, border: "1px solid #bae6fd" }}>
+                                                    {r}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Production capacity from DB */}
+                                {(c.productionCapacityRu || c.productionCapacityEn) && (
+                                    <div style={{ marginBottom: 14 }}>
+                                        <div style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
+                                            ⚙️ {lang === "ru" ? "Производственные мощности" : "Production Capacity"}
+                                        </div>
+                                        <p style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.6, margin: 0 }}>
+                                            {lang === "ru" ? c.productionCapacityRu : c.productionCapacityEn}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Quality control policy */}
+                                {(c.qualityControlRu || c.qualityControlEn) && (
+                                    <div>
+                                        <div style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
+                                            ✅ {lang === "ru" ? "Контроль качества" : "Quality Control"}
+                                        </div>
+                                        <p style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.6, margin: 0 }}>
+                                            {lang === "ru" ? c.qualityControlRu : c.qualityControlEn}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
+
+                    {/* Production Capacity — static fallback for mock data */}
                     {capacity.length > 0 && (
+
                         <div style={{ background: "white", border: "1px solid var(--color-border)", borderRadius: 16, padding: 24, marginBottom: 20 }}>
                             <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 16 }}>⚙️ {L.production}</h2>
                             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>

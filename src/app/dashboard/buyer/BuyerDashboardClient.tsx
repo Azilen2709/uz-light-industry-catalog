@@ -1,23 +1,10 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { signOut } from "next-auth/react";
 import { useT } from "@/contexts/LanguageContext";
 
-// ─── Mock data (for orders/saved) ─────────────────────────────────────────
-
-const BUYER_STATS = { activeRFQs: 3, totalOrders: 12, pendingQuotes: 7, savedFactories: 5 };
-
-const MY_RFQS = [
-    { id: 1, title: "Худи оверсайз 500 шт", status: "active", quotes: 3, created: "23 фев", industry: "Текстиль 🧵" },
-    { id: 2, title: "Шёлковые платья 200 шт", status: "matched", quotes: 1, created: "19 фев", industry: "Шёлк 🪡" },
-    { id: 3, title: "Кожаные ремни 1000 шт", status: "closed", quotes: 5, created: "10 фев", industry: "Кожа 🟤" },
-];
-
-const MY_ORDERS = [
-    { id: 101, factory: "UzTextile Pro", item: "Худи оверсайз", qty: "200 шт", total: "$840", status: "in_production", date: "15 мар 2026" },
-    { id: 102, factory: "SilkRoad Fabrics", item: "Шёлк натуральный", qty: "50 м", total: "$1 250", status: "delivered", date: "5 фев 2026" },
-    { id: 103, factory: "StyleFactory", item: "Поло White Label", qty: "50 шт", total: "$175", status: "paid", date: "22 мар 2026" },
-];
+// ─── Mock data (for saved factories only) ─────────────────────────────────
 
 const SAVED = [
     { id: 1, name: "UzTextile Pro", region: "Ташкент", rating: 4.8, verified: true },
@@ -42,9 +29,10 @@ const orderStatusCfg = {
 interface BuyerDashboardClientProps {
     user: { name: string; email: string };
     myRfqs: any[];
+    myOrders?: any[];
 }
 
-export default function BuyerDashboardClient({ user, myRfqs }: BuyerDashboardClientProps) {
+export default function BuyerDashboardClient({ user, myRfqs, myOrders = [] }: BuyerDashboardClientProps) {
     const { lang } = useT();
     const [tab, setTab] = useState<"rfq" | "orders" | "saved">("rfq");
 
@@ -83,9 +71,9 @@ export default function BuyerDashboardClient({ user, myRfqs }: BuyerDashboardCli
 
     const statCards = [
         { icon: "📐", value: myRfqs.length, label: L.statRFQ, color: "#7c3aed", bg: "#ede9fe" },
-        { icon: "📦", value: BUYER_STATS.totalOrders, label: L.statOrders, color: "#2563eb", bg: "#dbeafe" },
-        { icon: "📨", value: BUYER_STATS.pendingQuotes, label: L.statQuotes, color: "#d97706", bg: "#fef3c7" },
-        { icon: "⭐", value: BUYER_STATS.savedFactories, label: L.statSaved, color: "#15803d", bg: "#dcfce7" },
+        { icon: "📦", value: myOrders.length, label: L.statOrders, color: "#2563eb", bg: "#dbeafe" },
+        { icon: "📨", value: myRfqs.filter((r: any) => r.responses?.length > 0).length, label: L.statQuotes, color: "#d97706", bg: "#fef3c7" },
+        { icon: "⭐", value: 0, label: L.statSaved, color: "#15803d", bg: "#dcfce7" },
     ];
 
     const tableHead = { fontSize: 11, fontWeight: 700, color: "var(--color-muted)", padding: "10px 14px", textAlign: "left" as const, textTransform: "uppercase" as const, letterSpacing: "0.05em", borderBottom: "1px solid var(--color-border)" };
@@ -110,7 +98,12 @@ export default function BuyerDashboardClient({ user, myRfqs }: BuyerDashboardCli
                     </div>
                     <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                         <Link href="/" style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>{L.home}</Link>
-                        <Link href="/auth/login" style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "6px 12px" }}>{L.logout}</Link>
+                        <button
+                            onClick={() => signOut({ callbackUrl: "/auth/login" })}
+                            style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", background: "none", cursor: "pointer", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "6px 12px" }}
+                        >
+                            {L.logout}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -207,21 +200,30 @@ export default function BuyerDashboardClient({ user, myRfqs }: BuyerDashboardCli
                                 ))}
                             </tr></thead>
                             <tbody>
-                                {MY_ORDERS.map(order => {
-                                    const cfg = orderStatusCfg[order.status as keyof typeof orderStatusCfg];
+                                {myOrders.length === 0 && (
+                                    <tr><td colSpan={7} style={{ padding: 30, textAlign: "center", color: "var(--color-muted)" }}>Заказов пока нет</td></tr>
+                                )}
+                                {myOrders.map((order: any) => {
+                                    const statusMap: Record<string, { icon: string; color: string; label: { ru: string; en: string } }> = {
+                                        PENDING: { icon: "⏳", color: "#d97706", label: { ru: "Ожидает", en: "Pending" } },
+                                        PROCESSING: { icon: "⚙️", color: "#2563eb", label: { ru: "В работе", en: "Processing" } },
+                                        COMPLETED: { icon: "✅", color: "#15803d", label: { ru: "Завершён", en: "Completed" } },
+                                        CANCELLED: { icon: "❌", color: "#b91c1c", label: { ru: "Отменён", en: "Cancelled" } },
+                                    };
+                                    const cfg = statusMap[order.status] ?? statusMap.PENDING;
                                     return (
                                         <tr key={order.id}>
-                                            <td style={tableCell}><span style={{ fontWeight: 700, color: "var(--color-muted)" }}>#{order.id}</span></td>
-                                            <td style={tableCell}><span style={{ fontWeight: 700 }}>{order.factory}</span></td>
-                                            <td style={tableCell}>{order.item}</td>
-                                            <td style={tableCell}>{order.qty}</td>
-                                            <td style={tableCell}><strong style={{ color: "var(--color-primary)" }}>{order.total}</strong></td>
+                                            <td style={tableCell}><span style={{ fontWeight: 700, color: "var(--color-muted)" }}>#{order.id.slice(0, 8)}</span></td>
+                                            <td style={tableCell}><span style={{ fontWeight: 700 }}>{order.seller?.name ?? "—"}</span></td>
+                                            <td style={tableCell}>{order.product?.titleRu || order.product?.titleEn}</td>
+                                            <td style={tableCell}>{order.quantity} шт</td>
+                                            <td style={tableCell}><strong style={{ color: "var(--color-primary)" }}>${order.totalPrice?.toFixed(2)}</strong></td>
                                             <td style={tableCell}>
                                                 <span style={{ fontSize: 12, fontWeight: 700, color: cfg.color }}>
                                                     {cfg.icon} {cfg.label[lang]}
                                                 </span>
                                             </td>
-                                            <td style={tableCell}>{order.date}</td>
+                                            <td style={tableCell}>{new Date(order.createdAt).toLocaleDateString(lang)}</td>
                                         </tr>
                                     );
                                 })}

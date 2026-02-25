@@ -40,9 +40,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
                 titleEn: body.titleEn,
                 descriptionRu: body.descriptionRu || "",
                 descriptionEn: body.descriptionEn || "",
-                priceMin: body.priceMin ? parseFloat(body.priceMin) : undefined,
-                priceMax: body.priceMax ? parseFloat(body.priceMax) : undefined,
-                moq: body.moq ? parseInt(body.moq) : undefined,
+                priceFrom: body.priceMin ? parseFloat(body.priceMin) : undefined,
+                priceTo: body.priceMax ? parseFloat(body.priceMax) : undefined,
+                moq: body.moq ? String(body.moq) : undefined,
             }
         });
         return NextResponse.json(updated);

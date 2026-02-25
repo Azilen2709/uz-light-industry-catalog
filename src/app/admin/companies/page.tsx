@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import CompaniesClient from "./CompaniesClient";
 
@@ -16,7 +17,7 @@ export default async function AdminCompaniesPage() {
         slug: c.slug,
         name: c.name,
         region: c.region,
-        industry: c.industry,
+        industrySlugs: c.industrySlugs,
         verified: c.verified,
         rating: c.rating,
         userCount: c._count.users,
@@ -25,3 +26,4 @@ export default async function AdminCompaniesPage() {
 
     return <CompaniesClient initialCompanies={formattedCompanies} />;
 }
+
